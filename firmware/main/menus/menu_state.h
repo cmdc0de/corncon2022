@@ -2,13 +2,12 @@
 #define MENU_STATE_H
 
 #include "appbase_menu.h"
-#include <device/touch/XPT2046.h>
 #include <device/display/layout.h>
 
 class MenuState: public AppBaseMenu {
 public:
 	static const int QUEUE_SIZE = 5;
-	static const int MSG_SIZE = sizeof(libesp::TouchNotification*);
+	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 	MenuState();
 	virtual ~MenuState();
 protected:

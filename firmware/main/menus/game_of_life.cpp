@@ -5,13 +5,11 @@
 #include "../app.h"
 #include <freertos.h>
 #include <esp_log.h>
-#include "calibration_menu.h"
 
 using libesp::ErrorType;
 using libesp::RGBColor;
 using libesp::BitArray;
 using libesp::Point2Ds;
-using libesp::TouchNotification;
 
 uint8_t GameOfLife::Buffer[] = {0};
 using libesp::FreeRTOS;
@@ -30,13 +28,13 @@ GameOfLife::~GameOfLife() {
 
 ErrorType GameOfLife::onInit() {
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-	TouchNotification *pe = nullptr;
-	for(int i=0;i<2;i++) {
-		if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-			delete pe;
-		}
-	}
-	MyApp::get().getTouch().addObserver(InternalQueueHandler);
+	//TouchNotification *pe = nullptr;
+	//for(int i=0;i<2;i++) {
+//		if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
+//			delete pe;
+//		}
+//	}
+//	MyApp::get().getTouch().addObserver(InternalQueueHandler);
 	InternalState = INIT;
 	return ErrorType();
 }
@@ -48,15 +46,15 @@ bool GameOfLife::shouldDisplayMessage() {
 static uint8_t noChange = 0;
 
 libesp::BaseMenu::ReturnStateContext GameOfLife::onRun() {
-	TouchNotification *pe = nullptr;
-	bool penUp = false;
-	if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-		ESP_LOGI(LOGTAG,"que");
-		Point2Ds screenPoint(pe->getX(),pe->getY());
-		penUp = !pe->isPenDown();
-		delete pe;
-    if(penUp) return ReturnStateContext(MyApp::get().getMenuState());
-	}
+//	TouchNotification *pe = nullptr;
+//	bool penUp = false;
+//	if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
+//		ESP_LOGI(LOGTAG,"que");
+//		Point2Ds screenPoint(pe->getX(),pe->getY());
+//		penUp = !pe->isPenDown();
+//		delete pe;
+ //   if(penUp) return ReturnStateContext(MyApp::get().getMenuState());
+//	}
 
 	switch (InternalState) {
 	case INIT: {

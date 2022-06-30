@@ -1,5 +1,4 @@
 set(srcs "./app.cpp"
-	"./config.cpp"
 	"./corncon22.cpp"
   "./menus/menu_state.cpp"
   "./menus/appbase_menu.cpp"

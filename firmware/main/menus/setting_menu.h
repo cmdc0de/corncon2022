@@ -10,10 +10,6 @@
 #include "appbase_menu.h"
 #include <device/display/layout.h>
 
-namespace libesp {
-	class TouchNotification;
-}
-
 class SettingMenu: public AppBaseMenu {
 public:
   enum INTERNAL_STATE {
@@ -34,7 +30,7 @@ private:
   INTERNAL_STATE InternalState;
 public:
 	static const int TOUCH_QUEUE_SIZE = 4;
-	static const int TOUCH_MSG_SIZE = sizeof(libesp::TouchNotification*);
+	static const int TOUCH_MSG_SIZE = sizeof(ButtonManagerEvent*);
 	static const char *LOGTAG;
 };
 

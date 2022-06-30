@@ -35,7 +35,7 @@ void app_main() {
 
 //	gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 
-  gpio_install_isr_service(0);
+   gpio_install_isr_service(0);
 	libesp::ErrorType et;
 	et = MyApp::get().init();
 
@@ -43,17 +43,10 @@ void app_main() {
 		ESP_LOGE(LOGTAG,"init error: %s", et.toString());
 	}
 
-	//ESP32_I2CMaster::doIt();
-
-	//ESP_LOGI(LOGTAG,"scan I2c1");
-	//ESP32_I2CMaster I2c1(I2C_SCL2,I2C_SDA2,400000, I2C_NUM_1, 0, 16);
-	//I2c1.init(false);
-	//I2c1.scan();
-	
 
 	libesp::System::get().logSystemInfo();
 
-   do {
+	do {
 		et = MyApp::get().run();
 		//vTaskDelay(1 / portTICK_RATE_MS);
 	} while (et.ok());

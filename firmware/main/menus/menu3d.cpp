@@ -63,14 +63,14 @@ ErrorType Menu3D::onInit() {
 }
 
 void Menu3D::initMenu3d() {
+/*
   libesp::TouchNotification *pe = nullptr;
 	for(int i=0;i<2;i++) {
 		if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
 			delete pe;
 		}
 	}
-	MyApp::get().getTouch().addObserver(InternalQueueHandler);
-
+*/
 	lookat(eye, center, up);
 	viewport((CanvasWidth / 8), (CanvasHeight / 8), CanvasWidth * 0.8, CanvasHeight * 0.8);
 	projection(-1.f / (eye - center).norm());
@@ -81,7 +81,7 @@ void Menu3D::initMenu3d() {
 
 BaseMenu::ReturnStateContext Menu3D::onRun() {
 	BaseMenu::ReturnStateContext sr(this);
-
+/*
   libesp::TouchNotification *pe = nullptr;
 	bool penUp = false;
 	if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
@@ -90,7 +90,7 @@ BaseMenu::ReturnStateContext Menu3D::onRun() {
 		delete pe;
     if(penUp) return ReturnStateContext(MyApp::get().getMenuState());
 	}
-
+*/
 	switch (InternalState) {
 		case INIT:
 			initMenu3d();
@@ -105,7 +105,6 @@ BaseMenu::ReturnStateContext Menu3D::onRun() {
 }
 
 ErrorType Menu3D::onShutdown() {
-	MyApp::get().getTouch().removeObserver(InternalQueueHandler);
 	return ErrorType();
 }
 

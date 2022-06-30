@@ -3,7 +3,7 @@
 #include "device/touch/XPT2046.h"
 #include "math/point.h"
 #include "../app.h"
-#include "calibration_menu.h"
+//#include "calibration_menu.h"
 #include "gui_list_processor.h"
 #include <esp_log.h>
 
@@ -30,7 +30,7 @@ bool AppBaseMenu::processTouch(QueueHandle_t &queH, libesp::GUIListData &guiList
 	if(xQueueReceive(queH, &pe, 0)) {
 		ESP_LOGI(LOGTAG,"que");
 		Point2Ds screenPoint(pe->getX(),pe->getY());
-		TouchPosInBuf = MyApp::get().getCalibrationMenu()->getPickPoint(screenPoint);
+		//TouchPosInBuf = MyApp::get().getCalibrationMenu()->getPickPoint(screenPoint);
 		ESP_LOGI(LOGTAG,"TouchPoint: X:%d Y:%d PD:%d", int32_t(TouchPosInBuf.getX()),
 							 int32_t(TouchPosInBuf.getY()), pe->isPenDown()?1:0);
 		penUp = !pe->isPenDown();

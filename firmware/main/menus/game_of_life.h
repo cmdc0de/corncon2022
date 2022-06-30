@@ -17,7 +17,7 @@ public:
 	static uint8_t Buffer[sizeof_buffer];
 	static const uint32_t NEED_DRAW = 1<<BaseMenu::SHIFT_FROM_BASE;
 	static const int QUEUE_SIZE = 5;
-	static const int MSG_SIZE = sizeof(libesp::TouchNotification*);
+	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
