@@ -15,6 +15,9 @@ fullclean:
 flash:
 	idf.py -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -p /dev/ttyUSB0 flash
 
+monitor:
+	idf.py -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -p /dev/ttyUSB0 monitor
+
 fm:
 	idf.py -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -p /dev/ttyUSB0 flash monitor
 

@@ -36,7 +36,7 @@ using libesp::System;
 using libesp::FreeRTOS;
 using libesp::RGBColor;
 using libesp::SPIBus;
-using libesp::DisplayILI9341;
+using libesp::TFTDisplay;
 using libesp::XPT2046;
 using libesp::GUI;
 using libesp::DisplayMessageState;
@@ -47,10 +47,10 @@ const char *MyApp::LOGTAG = "AppTask";
 const char *MyApp::sYES = "Yes";
 const char *MyApp::sNO = "No";
 
-#define START_ROT libesp::DisplayILI9341::LANDSCAPE_TOP_LEFT
-static const uint16_t PARALLEL_LINES = 1;
+#define START_ROT libesp::TFTDisplay::LANDSCAPE_TOP_LEFT
+static const uint16_t PARALLEL_LINES = 8;
 
-libesp::DisplayILI9341 Display(MyApp::DISPLAY_WIDTH,MyApp::DISPLAY_HEIGHT,START_ROT, PIN_NUM_DISPLAY_BACKLIGHT, PIN_NUM_DISPLAY_RESET);
+libesp::TFTDisplay Display(MyApp::DISPLAY_WIDTH,MyApp::DISPLAY_HEIGHT,START_ROT, PIN_NUM_DISPLAY_BACKLIGHT, PIN_NUM_DISPLAY_RESET, TFTDisplay::DISPLAY_TYPE::ST7735R);
 
 static uint16_t BkBuffer[MyApp::FRAME_BUFFER_WIDTH*MyApp::FRAME_BUFFER_HEIGHT];
 static uint16_t *BackBuffer = &BkBuffer[0];
@@ -73,7 +73,6 @@ const char *MyErrorMap::toString(int32_t err) {
 MyApp MyApp::mSelf;
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[MyApp::QUEUE_SIZE*MyApp::MSG_SIZE] = {0};
-static StaticSemaphore_t xMutexDisplayTouchBuffer;
 
 MyApp &MyApp::get() {
 	return mSelf;
@@ -162,7 +161,7 @@ libesp::ErrorType MyApp::onInit() {
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
   //this will init the SPI bus and the display
-  DisplayILI9341::initDisplay(PIN_NUM_DISPLAY_MISO, PIN_NUM_DISPLAY_MOSI,
+  TFTDisplay::initDisplay(PIN_NUM_DISPLAY_MISO, PIN_NUM_DISPLAY_MOSI,
     PIN_NUM_DISPLAY_SCK, SPI_DMA_CH2, PIN_NUM_DISPLAY_DATA_CMD, PIN_NUM_DISPLAY_RESET,
     PIN_NUM_DISPLAY_BACKLIGHT, SPI3_HOST);
 
@@ -176,7 +175,7 @@ libesp::ErrorType MyApp::onInit() {
 	ESP_LOGI(LOGTAG,"After FrameBuf: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
 	ESP_LOGI(LOGTAG,"start display init");
-	et=Display.init(libesp::DisplayILI9341::FORMAT_16_BIT, &Font_6x10, &FrameBuf);
+	et=Display.init(libesp::TFTDisplay::FORMAT_16_BIT, &Font_6x10, &FrameBuf);
 
   if(et.ok()) {
 		ESP_LOGI(LOGTAG,"display init OK");
@@ -189,12 +188,12 @@ libesp::ErrorType MyApp::onInit() {
 		Display.fillRec(0,15,FRAME_BUFFER_WIDTH/2,10,libesp::RGBColor::WHITE);
 		Display.swap();
 		vTaskDelay(500 / portTICK_RATE_MS);
-		Display.fillRec(0,30,FRAME_BUFFER_WIDTH,10,libesp::RGBColor::BLUE);
+		Display.fillRec(0,30,FRAME_BUFFER_WIDTH-2,10,libesp::RGBColor::BLUE);
 		Display.swap();
 		vTaskDelay(500 / portTICK_RATE_MS);
-		Display.drawRec(0,60,FRAME_BUFFER_WIDTH/2,20, libesp::RGBColor::GREEN);
-		Display.drawString(15,110,"Color Validation.",libesp::RGBColor::RED);
-		Display.drawString(30,120,"Sensor Clock",libesp::RGBColor::BLUE, libesp::RGBColor::WHITE,1,false);
+		Display.drawRec(0,50,FRAME_BUFFER_WIDTH/2,10, libesp::RGBColor::GREEN);
+		Display.drawString(15,70,"Color Validation.",libesp::RGBColor::RED);
+		Display.drawString(30,85,"Sensor Clock",libesp::RGBColor::BLUE, libesp::RGBColor::WHITE,1,false);
 		Display.swap();
 
 		vTaskDelay(1000 / portTICK_RATE_MS);
