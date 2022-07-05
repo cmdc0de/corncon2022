@@ -15,11 +15,10 @@ protected:
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
 	virtual libesp::ErrorType onShutdown();
 private:
-	//libesp::GUIListData MenuList;
-	//libesp::GUIListItemData Items[10];
+	libesp::GUIListData MenuList;
+	libesp::GUIListItemData Items[4];
 	QueueHandle_t InternalQueueHandler;
-	//static const uint16_t ItemCount = uint16_t(sizeof(Items) / sizeof(Items[0]));
-	libesp::StaticGridLayout MyLayout;
+	static const uint16_t ItemCount = uint16_t(sizeof(Items) / sizeof(Items[0]));
 };
 
 #endif

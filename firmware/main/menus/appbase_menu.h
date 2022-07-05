@@ -22,8 +22,6 @@ public:
 protected:
 	static void clearListBuffer();
 	static char *getRow(uint8_t row);
-protected:
-	bool processTouch(QueueHandle_t &queH, libesp::GUIListData &guiList, uint16_t itemCount, bool &penUp, bool &headerHit);
 private:
 	static char ListBuffer[NumRows][RowLength]; //height then width
 };

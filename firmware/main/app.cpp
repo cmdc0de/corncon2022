@@ -61,7 +61,6 @@ libesp::ScalingBuffer FrameBuf(&Display, MyApp::FRAME_BUFFER_WIDTH, MyApp::FRAME
     ,MyApp::DISPLAY_HEIGHT, PARALLEL_LINES, (uint8_t*)&BackBuffer[0],(uint8_t*)&ParallelLinesBuffer[0]);
 
 static GUI MyGui(&Display);
-//static WiFiMenu MyWiFiMenu;
 
 static libesp::AABBox2D Close(Point2Ds(185,7),6);
 static libesp::Button CloseButton((const char *)"X", MyApp::CLOSE_BTN_ID, &Close,RGBColor::RED, RGBColor::BLUE);
@@ -73,6 +72,15 @@ const char *MyErrorMap::toString(int32_t err) {
 MyApp MyApp::mSelf;
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[MyApp::QUEUE_SIZE*MyApp::MSG_SIZE] = {0};
+static libesp::ButtonManager<12,2,6,2> ButtonMgr;
+static libesp::ButtonManager<12,2,6,2>::ButtonInfo SButtonInfo[] = {
+  {PIN_NUM_DOWN_BTN,true}
+  ,{PIN_NUM_JUMP_BTN,true}
+  ,{PIN_NUM_FIRE_BTN,true}
+  ,{PIN_NUM_LEFT_BTN,true}
+  ,{PIN_NUM_RIGHT_BTN,true}
+  ,{PIN_NUM_UP_BTN,true}
+};
 
 MyApp &MyApp::get() {
 	return mSelf;
