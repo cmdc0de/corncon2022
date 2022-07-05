@@ -44,8 +44,8 @@ static libesp::Button Menu3DBtn((const char *)"3D", uint16_t(3), &Menu3DBV, RGBC
 static libesp::RectBBox2D ResetBV(Point2Ds(145,120), 40, 15);
 static libesp::Button ResetBtn((const char *)"Reset", uint16_t(4), &ResetBV, RGBColor::BLUE, RGBColor::WHITE);
 
-static const int8_t NUM_INTERFACE_ITEMS = 5;
-static libesp::Widget *InterfaceElements[NUM_INTERFACE_ITEMS] = {&StartAPBtn, &GOLBtn, &Menu3DBtn, &ResetBtn, &MyApp::get().getCloseButton()};
+static const int8_t NUM_INTERFACE_ITEMS = 4;
+static libesp::Widget *InterfaceElements[NUM_INTERFACE_ITEMS] = {&StartAPBtn, &GOLBtn, &Menu3DBtn, &ResetBtn };
 
 SettingMenu::SettingMenu() : AppBaseMenu(), TouchQueueHandle() 
 	, MyLayout(&InterfaceElements[0],NUM_INTERFACE_ITEMS, MyApp::get().getLastCanvasWidthPixel(), MyApp::get().getLastCanvasHeightPixel(), false)
@@ -115,9 +115,6 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
         libesp::System::get().restart();
         break;
 
-      case MyApp::CLOSE_BTN_ID:
-        nextState = MyApp::get().getMenuState();
-        break;
 		  }
 	  }
 	}

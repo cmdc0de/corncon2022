@@ -5,6 +5,7 @@
 #include <device/display/gui.h>
 #include <device/hwbutton/buttonmanager.h>
 #include <freertos.h>
+#include "../pinconfig.h"
 
 namespace libesp {
 class GUIListData;

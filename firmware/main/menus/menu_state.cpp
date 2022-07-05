@@ -26,7 +26,7 @@ MenuState::~MenuState() {
 
 ErrorType MenuState::onInit() {
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-  Items[0].id = 0;
+   Items[0].id = 0;
 	//if (DarkNet7::get().getContacts().getSettings().isNameSet()) {
 //		Items[0].text = (const char *) "Settings";
 //	} else {
@@ -38,26 +38,52 @@ ErrorType MenuState::onInit() {
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
 	Items[3].text = (const char *) "stuff";
-  MyApp::get().getGUI().drawList(&this->MenuList);
-	//MyApp::get().getTouch().removeObserver(InternalQueueHandler);
+   MyApp::get().getGUI().drawList(&this->MenuList);
+	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
 }
 
 libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
 	BaseMenu *nextState = this;
+   ButtonManagerEvent *bme = nullptr;
+   bool wasFireBtnReleased = false;
+	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+		ESP_LOGI(LOGTAG,"que");
+      if(bme->wasReleased()) {
+         switch(bme->getButton()) {
+            case PIN_NUM_FIRE_BTN:
+               wasFireBtnReleased = true;
+            break;
+            case PIN_NUM_UP_BTN:
+               MenuList.moveUp();
+            break;
+            case PIN_NUM_DOWN_BTN:
+               MenuList.moveDown();
+            break;
+            case PIN_NUM_LEFT_BTN:
+               MenuList.selectTop();
+            break;
+            default:
+            break;
+         }
+      }
+	}
 
-  char buf[32] = {'\0'};
-  switch (MenuList.selectedItem) {
-    case 0:
-			//nextState = MyApp::get().getSettingMenu();
+  //char buf[32] = {'\0'};
+  if(wasFireBtnReleased) {
+      switch (MenuList.selectedItem) {
+      case 0:
+         //nextState = MyApp::get().getSettingMenu();
       break;
-  } 
+      }
+  }
     
+   MyApp::get().getGUI().drawList(&this->MenuList);
 	return BaseMenu::ReturnStateContext(nextState);
 }
 
 ErrorType MenuState::onShutdown() {
-	//MyApp::get().getTouch().removeObserver(InternalQueueHandler);
+	MyApp::get().getButtonMgr().removeObserver(InternalQueueHandler);
 	return ErrorType();
 }
 

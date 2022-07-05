@@ -14,6 +14,7 @@
 #include <nvs_memory.h>
 #include <freertos.h>
 #include <device/display/layout.h>
+#include <device/hwbutton/buttonmanager.h>
 
 namespace libesp {
 class GUI;
@@ -50,6 +51,7 @@ public:
     , FOUR
   };
 public:
+   typedef typename libesp::ButtonManager<12,2,6,2> BtnManagerType;
 	static const char *LOGTAG;
 	static const char *MENUHEADER;
 	static const int QUEUE_SIZE = 10;
@@ -64,7 +66,6 @@ public:
 	static const uint16_t FRAME_BUFFER_HEIGHT	= 128;
 	static const uint16_t FRAME_BUFFER_WIDTH	= 160;
 
-	static const uint32_t CLOSE_BTN_ID = 1000; 
 	static const uint32_t ESP_INTR_FLAG_DEFAULT= 0;
 
 	static MyApp &get();
@@ -83,9 +84,9 @@ public:
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);
 	uint8_t *getBackBuffer();
 	uint32_t getBackBufferSize();
-	QueueHandle_t getMessageQueueHandle() {return InternalQueueHandler;}
 	libesp::NVS &getNVS() { return NVSStorage;}
-	libesp::Button &getCloseButton();
+   BtnManagerType &getButtonMgr() {return ButtonMgr;}
+   const BtnManagerType &getButtonMgr() const {return ButtonMgr;}
 protected:
 	MyApp();
    libesp::ErrorType initFS();
@@ -96,8 +97,8 @@ private:
 	MyErrorMap AppErrors;
 	MODE CurrentMode;
 	uint32_t LastTime;
-	QueueHandle_t InternalQueueHandler;
 	libesp::NVS NVSStorage;
+   BtnManagerType ButtonMgr;
 private:
 	static MyApp mSelf;
 };

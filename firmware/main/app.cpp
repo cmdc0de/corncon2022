@@ -29,7 +29,6 @@
 #include <device/sensor/dht11.h>
 #include <math/point.h>
 #include <esp_spiffs.h>
-#include <time.h>
 
 using libesp::ErrorType;
 using libesp::System;
@@ -37,7 +36,6 @@ using libesp::FreeRTOS;
 using libesp::RGBColor;
 using libesp::SPIBus;
 using libesp::TFTDisplay;
-using libesp::XPT2046;
 using libesp::GUI;
 using libesp::DisplayMessageState;
 using libesp::BaseMenu;
@@ -62,18 +60,12 @@ libesp::ScalingBuffer FrameBuf(&Display, MyApp::FRAME_BUFFER_WIDTH, MyApp::FRAME
 
 static GUI MyGui(&Display);
 
-static libesp::AABBox2D Close(Point2Ds(185,7),6);
-static libesp::Button CloseButton((const char *)"X", MyApp::CLOSE_BTN_ID, &Close,RGBColor::RED, RGBColor::BLUE);
-
 const char *MyErrorMap::toString(int32_t err) {
 	return "TODO";
 }
 
 MyApp MyApp::mSelf;
-static StaticQueue_t InternalQueue;
-static uint8_t InternalQueueBuffer[MyApp::QUEUE_SIZE*MyApp::MSG_SIZE] = {0};
-static libesp::ButtonManager<12,2,6,2> ButtonMgr;
-static libesp::ButtonManager<12,2,6,2>::ButtonInfo SButtonInfo[] = {
+static MyApp::BtnManagerType::ButtonInfo SButtonInfo[] = {
   {PIN_NUM_DOWN_BTN,true}
   ,{PIN_NUM_JUMP_BTN,true}
   ,{PIN_NUM_FIRE_BTN,true}
@@ -86,18 +78,13 @@ MyApp &MyApp::get() {
 	return mSelf;
 }
 
-MyApp::MyApp() : AppErrors(), CurrentMode(ONE), LastTime(0) , InternalQueueHandler(0)
-                 , NVSStorage("appdata","data",false)
-{
+MyApp::MyApp() : AppErrors(), CurrentMode(ONE), LastTime(0), NVSStorage("appdata","data",false)
+                 , ButtonMgr(true) {
 	ErrorType::setAppDetail(&AppErrors);
 }
 
 MyApp::~MyApp() {
 
-}
-
-libesp::Button &MyApp::getCloseButton() {
-  return CloseButton;
 }
 
 uint8_t *MyApp::getBackBuffer() {
@@ -142,12 +129,12 @@ ErrorType MyApp::initFS() {
 libesp::ErrorType MyApp::onInit() {
 	ErrorType et;
 
-	InternalQueueHandler = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&InternalQueueBuffer[0],&InternalQueue);
+   ButtonMgr.init(&SButtonInfo[0],true);
 
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
-  //DisplayTouchSemaphore = xSemaphoreCreateMutexStatic(&xMutexDisplayTouchBuffer);
-//	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
+	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
+
   //initFS();
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 	et = NVSStorage.init();
@@ -224,6 +211,8 @@ libesp::ErrorType MyApp::onInit() {
 
 ErrorType MyApp::onRun() {
    ErrorType et;
+   ButtonMgr.poll(); //move away from poll 
+   ButtonMgr.broadcast();
    libesp::BaseMenu::ReturnStateContext rsc = getCurrentMenu()->run();
 	Display.swap();
 
