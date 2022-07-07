@@ -29,6 +29,7 @@
 #include <device/sensor/dht11.h>
 #include <math/point.h>
 #include <esp_spiffs.h>
+#include <device/shiftregister/software_shift.h>
 
 using libesp::ErrorType;
 using libesp::System;
@@ -59,6 +60,7 @@ libesp::ScalingBuffer FrameBuf(&Display, MyApp::FRAME_BUFFER_WIDTH, MyApp::FRAME
     ,MyApp::DISPLAY_HEIGHT, PARALLEL_LINES, (uint8_t*)&BackBuffer[0],(uint8_t*)&ParallelLinesBuffer[0]);
 
 static GUI MyGui(&Display);
+static libesp::SoftwareShiftRegister SSR;
 
 const char *MyErrorMap::toString(int32_t err) {
 	return "TODO";
@@ -133,6 +135,11 @@ libesp::ErrorType MyApp::onInit() {
 
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
+   et = SSR.init(PIN_NUM_LED_CLK,PIN_NUM_LED_SERIAL,PIN_NUM_LED_OUTPUT_EN,true,PIN_NUM_LED_STROBE,true,true);
+   if(!et.ok()) {
+      ESP_LOGI(LOGTAG,"Failed to init software serial register");
+   }
+   SSR.start();
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
   //initFS();
@@ -233,6 +240,8 @@ ErrorType MyApp::onRun() {
     switch(CurrentMode) {
     case ONE:
       {
+         SSR.enableOutput();
+         SSR.enqueueData(0xFF,6);
         CurrentMode = TWO;
       }
       break;
