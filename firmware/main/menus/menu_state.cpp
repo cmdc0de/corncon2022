@@ -5,6 +5,7 @@
 #include <esp_log.h>
 #include <math/rectbbox.h>
 #include "setting_menu.h"
+#include "game_of_life.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -33,7 +34,7 @@ ErrorType MenuState::onInit() {
 		Items[0].text = (const char *) "Settings *";
 //	}
 	Items[1].id = 1;
-	Items[1].text = (const char *) "Badge Pair";
+	Items[1].text = (const char *) "Screen Saver";
 	Items[2].id = 2;
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
@@ -74,7 +75,10 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
       switch (MenuList.selectedItem) {
       case 0:
          //nextState = MyApp::get().getSettingMenu();
-      break;
+         break;
+      case 1:
+         nextState = MyApp::get().getGameOfLife();
+         break;
       }
   }
     

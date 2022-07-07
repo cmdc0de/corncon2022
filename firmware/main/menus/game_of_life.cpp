@@ -28,13 +28,7 @@ GameOfLife::~GameOfLife() {
 
 ErrorType GameOfLife::onInit() {
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-	//TouchNotification *pe = nullptr;
-	//for(int i=0;i<2;i++) {
-//		if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-//			delete pe;
-//		}
-//	}
-//	MyApp::get().getTouch().addObserver(InternalQueueHandler);
+	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	InternalState = INIT;
 	return ErrorType();
 }
@@ -46,83 +40,79 @@ bool GameOfLife::shouldDisplayMessage() {
 static uint8_t noChange = 0;
 
 libesp::BaseMenu::ReturnStateContext GameOfLife::onRun() {
-//	TouchNotification *pe = nullptr;
-//	bool penUp = false;
-//	if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-//		ESP_LOGI(LOGTAG,"que");
-//		Point2Ds screenPoint(pe->getX(),pe->getY());
-//		penUp = !pe->isPenDown();
-//		delete pe;
- //   if(penUp) return ReturnStateContext(MyApp::get().getMenuState());
-//	}
+	BaseMenu *nextState = this;
 
-	switch (InternalState) {
-	case INIT: {
-		MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-		DisplayMessageUntil = FreeRTOS::getTimeSinceStart() + 3000;
-		initGame();
-		noChange = 0;
-	}
-		break;
-	case MESSAGE:
-		MyApp::get().getDisplay().drawString(0, 10, &UtilityBuf[0], RGBColor::BLACK, RGBColor::WHITE, 1, true);
-		InternalState = TIME_WAIT;
-		break;
-	case TIME_WAIT:
-		if (!shouldDisplayMessage()) {
-			InternalState = GAME;
-			MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-		}
-		break;
-	case GAME: {
-		if (CurrentGeneration >= Generations) {
-			InternalState = INIT;
-		} else {
-			uint16_t count = 0;
-			int16_t xOffSet = MyApp::get().getCanvasWidth()-width;
-			xOffSet = xOffSet>0? xOffSet/2 : 0;
-			int16_t yOffSet = MyApp::get().getCanvasHeight()-height;
-			yOffSet = yOffSet>0? yOffSet/2 : 0;
+   ButtonManagerEvent *bme = nullptr;
+	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+      nextState = MyApp::get().getMenuState();
+   } else {
+	   switch (InternalState) {
+	   case INIT: {
+		   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
+		   DisplayMessageUntil = FreeRTOS::getTimeSinceStart() + 3000;
+		   initGame();
+		   noChange = 0;
+	      }
+		   break;
+	   case MESSAGE:
+		   MyApp::get().getDisplay().drawString(0, 10, &UtilityBuf[0], RGBColor::BLACK, RGBColor::WHITE, 1, true);
+		   InternalState = TIME_WAIT;
+		   break;
+	   case TIME_WAIT:
+		   if (!shouldDisplayMessage()) {
+			   InternalState = GAME;
+			   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
+		   }
+		   break;
+	   case GAME: {
+		   if (CurrentGeneration >= Generations) {
+			   InternalState = INIT;
+		   } else {
+			   uint16_t count = 0;
+			   int16_t xOffSet = MyApp::get().getCanvasWidth()-width;
+			   xOffSet = xOffSet>0? xOffSet/2 : 0;
+			   int16_t yOffSet = MyApp::get().getCanvasHeight()-height;
+			   yOffSet = yOffSet>0? yOffSet/2 : 0;
 
-			//uint8_t bitToCheck = CurrentGeneration % 32;
-			for (uint16_t j = 0; j < height; j++) {
-				for (uint16_t k = 0; k < width; k++) {
-					if(GOL.getValueAsByte((j*width)+k)) {
-						MyApp::get().getDisplay().drawPixel(k+xOffSet, j+yOffSet, RGBColor::WHITE);
-						count++;
-					} else {
-						MyApp::get().getDisplay().drawPixel(k+xOffSet, j+yOffSet, RGBColor::BLACK);
-					}
-				}
-			}
-			if (0 == count) {
-				sprintf(&UtilityBuf[0], "   ALL DEAD\n   After %d\n   generations", CurrentGeneration);
-				CurrentGeneration = Generations + 1;
-				InternalState = MESSAGE;
-				DisplayMessageUntil = FreeRTOS::getTimeSinceStart() + 3000;
-				MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-			} else {
-				uint8_t tmpBuffer[sizeof(Buffer)];
-				BitArray tmp(&tmpBuffer[0],num_slots,1);
-				if (!life(GOL, Neighborhood, width, height, tmp)) {
-					noChange++;
-					if (noChange > 6) {
-						CurrentGeneration = Generations + 1;
-					}
-				}
-			}
-			CurrentGeneration++;
-		}
-	}
-		break;
-	case SLEEP:
-		break;
-	}
-	//libesp::BaseMenu *next = MyApp::get().getMenuState();
-	return ReturnStateContext(this);
+			   for (uint16_t j = 0; j < height; j++) {
+				   for (uint16_t k = 0; k < width; k++) {
+					   if(GOL.getValueAsByte((j*width)+k)) {
+						   MyApp::get().getDisplay().drawPixel(k+xOffSet, j+yOffSet, RGBColor::WHITE);
+						   count++;
+					   } else {
+						   MyApp::get().getDisplay().drawPixel(k+xOffSet, j+yOffSet, RGBColor::BLACK);
+					   }
+				   }
+			   }
+			   if (0 == count) {
+				   sprintf(&UtilityBuf[0], "   ALL DEAD\n   After %d\n   generations", CurrentGeneration);
+				   CurrentGeneration = Generations + 1;
+				   InternalState = MESSAGE;
+				   DisplayMessageUntil = FreeRTOS::getTimeSinceStart() + 3000;
+				   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
+			   } else {
+				   uint8_t tmpBuffer[sizeof(Buffer)];
+				   BitArray tmp(&tmpBuffer[0],num_slots,1);
+				   if (!life(GOL, Neighborhood, width, height, tmp)) {
+					   noChange++;
+					   if (noChange > 6) {
+						   CurrentGeneration = Generations + 1;
+					   }
+				   }
+			   }
+			   CurrentGeneration++;
+		   }
+	   }
+		   break;
+	   case SLEEP:
+		   break;
+	   }
+   }
+	return ReturnStateContext(nextState);
 }
 
 ErrorType GameOfLife::onShutdown() {
+	MyApp::get().getButtonMgr().removeObserver(InternalQueueHandler);
 	return ErrorType();
 }
 

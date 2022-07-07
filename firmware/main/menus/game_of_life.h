@@ -10,14 +10,14 @@ public:
 	GameOfLife();
 	virtual ~GameOfLife();
 public:
+	static const int QUEUE_SIZE = 4;
+	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 	static const int width = int((float)MyApp::FRAME_BUFFER_WIDTH*0.85f);
 	static const int height = int((float)MyApp::FRAME_BUFFER_HEIGHT*0.85f);
 	static const int num_slots = width*height;
 	static const int sizeof_buffer = (num_slots/8)+1;
 	static uint8_t Buffer[sizeof_buffer];
 	static const uint32_t NEED_DRAW = 1<<BaseMenu::SHIFT_FROM_BASE;
-	static const int QUEUE_SIZE = 5;
-	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();

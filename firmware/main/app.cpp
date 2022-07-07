@@ -241,7 +241,22 @@ ErrorType MyApp::onRun() {
     case ONE:
       {
          SSR.enableOutput();
-         SSR.enqueueData(0xFF,6);
+         SSR.enqueueData(1,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(2,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(4,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(8,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(16,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(32,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(64,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
+        SSR.enqueueData(56,6);
+		vTaskDelay(500 / portTICK_RATE_MS);
         CurrentMode = TWO;
       }
       break;
