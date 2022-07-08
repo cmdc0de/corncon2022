@@ -30,6 +30,7 @@
 #include <math/point.h>
 #include <esp_spiffs.h>
 #include <device/shiftregister/software_shift.h>
+#include "appconfig.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -81,12 +82,16 @@ MyApp &MyApp::get() {
 }
 
 MyApp::MyApp() : AppErrors(), CurrentMode(ONE), LastTime(0), NVSStorage("appdata","data",false)
-                 , ButtonMgr(true) {
+                 , ButtonMgr(true), Config(&NVSStorage) {
 	ErrorType::setAppDetail(&AppErrors);
 }
 
 MyApp::~MyApp() {
 
+}
+
+AppConfig &MyApp::getConfig() {
+   return Config;
 }
 
 uint8_t *MyApp::getBackBuffer() {
@@ -161,6 +166,11 @@ libesp::ErrorType MyApp::onInit() {
 		}
 	}
 	ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
+
+   et = Config.init();
+   if(!et.ok()) {
+      ESP_LOGI(LOGTAG,"failed to init config store");
+   }
 
   //this will init the SPI bus and the display
   TFTDisplay::initDisplay(PIN_NUM_DISPLAY_MISO, PIN_NUM_DISPLAY_MOSI,

@@ -15,6 +15,7 @@
 #include <freertos.h>
 #include <device/display/layout.h>
 #include <device/hwbutton/buttonmanager.h>
+#include "appconfig.h"
 
 namespace libesp {
 class GUI;
@@ -81,6 +82,7 @@ public:
 	SettingMenu *getSettingMenu();
 	GameOfLife *getGameOfLife();
 	Menu3D *getMenu3D();
+   AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);
 	uint8_t *getBackBuffer();
 	uint32_t getBackBufferSize();
@@ -99,6 +101,7 @@ private:
 	uint32_t LastTime;
 	libesp::NVS NVSStorage;
    BtnManagerType ButtonMgr;
+   AppConfig Config;
 private:
 	static MyApp mSelf;
 };

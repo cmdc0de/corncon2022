@@ -28,18 +28,18 @@ MenuState::~MenuState() {
 ErrorType MenuState::onInit() {
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    Items[0].id = 0;
-	//if (DarkNet7::get().getContacts().getSettings().isNameSet()) {
-//		Items[0].text = (const char *) "Settings";
-//	} else {
+	if (MyApp::get().getConfig().isNameSet()) {
+		Items[0].text = (const char *) "Settings";
+	} else {
 		Items[0].text = (const char *) "Settings *";
-//	}
+	}
 	Items[1].id = 1;
 	Items[1].text = (const char *) "Screen Saver";
 	Items[2].id = 2;
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
 	Items[3].text = (const char *) "stuff";
-   MyApp::get().getGUI().drawList(&this->MenuList);
+   	MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
 }
