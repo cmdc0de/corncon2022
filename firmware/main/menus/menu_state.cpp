@@ -39,7 +39,7 @@ ErrorType MenuState::onInit() {
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
 	Items[3].text = (const char *) "stuff";
-   	MyApp::get().getGUI().drawList(&this->MenuList);
+   MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
 }
@@ -74,7 +74,7 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
   if(wasFireBtnReleased) {
       switch (MenuList.selectedItem) {
       case 0:
-         //nextState = MyApp::get().getSettingMenu();
+         nextState = MyApp::get().getSettingMenu();
          break;
       case 1:
          nextState = MyApp::get().getGameOfLife();

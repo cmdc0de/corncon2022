@@ -8,51 +8,29 @@
 #include <device/display/display_device.h>
 #include "menu_state.h"
 #include "../app.h"
-#include <device/touch/XPT2046.h>
-#include <math/point.h>
 #include <esp_log.h>
 //#include "wifi_menu.h"
-#include <math/rectbbox.h>
-#include <net/webserver.h>
 #include <app/display_message_state.h>
 #include "game_of_life.h"
 #include "menu3d.h"
 #include <system.h>
+#include "../vkeyboard.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
 using libesp::RGBColor;
-using libesp::TouchNotification;
 using libesp::Button;
-using libesp::Point2Ds;
 
-static StaticQueue_t TouchQueue;
-static uint8_t TouchQueueBuffer[SettingMenu::TOUCH_QUEUE_SIZE*SettingMenu::TOUCH_MSG_SIZE] = {0};
+static StaticQueue_t ButtonQueue;
+static uint8_t QueueBuffer[SettingMenu::QUEUE_SIZE*SettingMenu::MSG_SIZE] = {0};
 const char *SettingMenu::LOGTAG = "SettingMenu";
+VKeyboard VB;
 
-static const char *START_AP = "Start AP";
-static const char *STOP_AP = "Stop AP";
-static libesp::RectBBox2D StartAP(Point2Ds(45,35), 40, 15);
-static libesp::Button StartAPBtn(START_AP, uint16_t(0), &StartAP, RGBColor::BLUE, RGBColor::WHITE);
-
-static libesp::RectBBox2D GameOfLifeBV(Point2Ds(45,80), 40, 15);
-static libesp::Button GOLBtn((const char *)"Game Of Life", uint16_t(2), &GameOfLifeBV, RGBColor::BLUE, RGBColor::WHITE);
-
-static libesp::RectBBox2D Menu3DBV(Point2Ds(145,80), 40, 15);
-static libesp::Button Menu3DBtn((const char *)"3D", uint16_t(3), &Menu3DBV, RGBColor::BLUE, RGBColor::WHITE);
-
-static libesp::RectBBox2D ResetBV(Point2Ds(145,120), 40, 15);
-static libesp::Button ResetBtn((const char *)"Reset", uint16_t(4), &ResetBV, RGBColor::BLUE, RGBColor::WHITE);
-
-static const int8_t NUM_INTERFACE_ITEMS = 4;
-static libesp::Widget *InterfaceElements[NUM_INTERFACE_ITEMS] = {&StartAPBtn, &GOLBtn, &Menu3DBtn, &ResetBtn };
-
-SettingMenu::SettingMenu() : AppBaseMenu(), TouchQueueHandle() 
-	, MyLayout(&InterfaceElements[0],NUM_INTERFACE_ITEMS, MyApp::get().getLastCanvasWidthPixel(), MyApp::get().getLastCanvasHeightPixel(), false)
-  , InternalState(INTERNAL_STATE::SHOW_ALL) {
-
-	MyLayout.reset();
-	TouchQueueHandle = xQueueCreateStatic(TOUCH_QUEUE_SIZE,TOUCH_MSG_SIZE,&TouchQueueBuffer[0],&TouchQueue);
+SettingMenu::SettingMenu() : AppBaseMenu(), QueueHandle() 
+	, InternalState(INTERNAL_STATE::SHOW_ALL), MenuList("Setting", Items, 0, 0, MyApp::get().getCanvasWidth()
+   , MyApp::get().getCanvasHeight(), 0, ItemCount), Name() {
+	
+	QueueHandle = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&QueueBuffer[0],&ButtonQueue);
 }
 
 SettingMenu::~SettingMenu() {
@@ -60,81 +38,135 @@ SettingMenu::~SettingMenu() {
 }
 
 ErrorType SettingMenu::onInit() {
-	TouchNotification *pe = nullptr;
+   memset(&Name[0],0,sizeof(Name));
+	ButtonManagerEvent* *pe = nullptr;
 	for(int i=0;i<2;i++) {
-		if(xQueueReceive(TouchQueueHandle, &pe, 0)) {
+		if(xQueueReceive(QueueHandle, &pe, 0)) {
 			delete pe;
 		}
 	}
-	//MyApp::get().getTouch().addObserver(TouchQueueHandle);
+   Items[0].id = 0;
+   sprintf(getRow(0),"Name: %s", &Name[0]);
+   Items[0].text = getRow(0);
+	Items[1].id = 1;
+	Items[1].text = (const char *) "Set Sleep Time: ";
+	Items[2].id = 2;
+	Items[2].text = (const char *) "Disable LEDs: ";
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
+   MyApp::get().getGUI().drawList(&this->MenuList);
+	MyApp::get().getButtonMgr().addObserver(QueueHandle);
 	return ErrorType();
 }
 
+enum STATES {
+  INIT
+  , ENTER_NAME
+  , ENTER_NUMBER
+  , ENTER_BOOL
+};
+static STATES State = INIT;
+
 BaseMenu::ReturnStateContext SettingMenu::onRun() {
 	BaseMenu *nextState = this;
-	TouchNotification *pe = nullptr;
-	Point2Ds TouchPosInBuf;
-	libesp::Widget *widgetHit = nullptr;
-	bool penUp = false;
-	if(xQueueReceive(TouchQueueHandle, &pe, 0)) {
-		ESP_LOGI(LOGTAG,"que");
-		Point2Ds screenPoint(pe->getX(),pe->getY());
-		//TouchPosInBuf = MyApp::get().getCalibrationMenu()->getPickPoint(screenPoint);
-		ESP_LOGI(LOGTAG,"TouchPoint: X:%d Y:%d PD:%d", int32_t(TouchPosInBuf.getX()),
-								 int32_t(TouchPosInBuf.getY()), pe->isPenDown()?1:0);
-		penUp = !pe->isPenDown();
-		delete pe;
-		widgetHit = MyLayout.pick(TouchPosInBuf);
-	  if(widgetHit && penUp) {
-		  ESP_LOGI(LOGTAG, "Widget %s hit\n", widgetHit->getName());
-	    MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-		  switch(widgetHit->getWidgetID()) {
-    	case 0:
-        if(InternalState!=AP_RUNNING) {
-          StartAPBtn.setName(STOP_AP);
-          //MyApp::get().getWiFiMenu()->startAP();
-          InternalState = AP_RUNNING;
-        } else {
-          StartAPBtn.setName(START_AP);
-          //MyApp::get().getWiFiMenu()->stopAP();
-          InternalState = SHOW_ALL;
-        }
-			  break;
-      case 1:
-        //MyApp::get().getWiFiMenu()->stopAP();
-        break;
-      case 2:
-        nextState = MyApp::get().getGameOfLife();
-        break;
-      case 3:
-        nextState = MyApp::get().getMenu3D();
-        break;
-      case 4:
-        //MyApp::get().getWiFiMenu()->clearConnectData();
-        libesp::System::get().restart();
-        break;
-
-		  }
-	  }
-	}
-
-  if(InternalState==AP_RUNNING) {
-    char strBuf[128] {'\0'};
-    //snprintf(&strBuf[0], sizeof(strBuf), "AP Running: SSID = %s", WiFiMenu::WIFIAPSSID);
-    MyApp::get().getDisplay().drawString(10, 120, &strBuf[0]);
-  } else {
-    MyApp::get().getDisplay().drawString(10, 120, "AP Stopped");
-  }
-
-  MyLayout.draw(&MyApp::get().getDisplay());
+   ButtonManagerEvent *bme = nullptr;
+	if(xQueueReceive(QueueHandle, &bme, 0)) {
+		//ESP_LOGI(LOGTAG,"que");
+      if(bme->wasReleased()) {
+         switch(bme->getButton()) {
+            case PIN_NUM_FIRE_BTN:
+               {
+                  switch(State) {
+                  case INIT:
+                     switch(MenuList.getSelectedItemID()) {
+                        case 0:
+                           State = ENTER_NAME;
+                           VB.init(VKeyboard::K1,7);
+                           break;
+                        case 1:
+                           State = ENTER_NUMBER;
+                           break;
+                        case 2:
+                           State = ENTER_BOOL;
+                           break;
+                     }
+                     break;
+                  case ENTER_NAME:
+                     //save Name
+                     //sprintf(getRow(0),"Name: %s", &Name[0]);
+                     State = INIT;
+                     break;
+                  case ENTER_NUMBER:
+                     //save
+                     State = INIT;
+                     break;
+                  case ENTER_BOOL:
+                     State = INIT;
+                     break;
+                  }
+               }
+            break;
+            case PIN_NUM_UP_BTN: 
+            {
+               switch(State) {
+                  case INIT:
+                     MenuList.moveUp();
+                     break;
+                  default:
+                     VB.reset();
+                     break;
+               }
+            }
+            break;
+            case PIN_NUM_DOWN_BTN:
+            {
+               switch(State) {
+                  case INIT:
+                     MenuList.moveDown();
+                     break;
+                  default:
+                     VB.reset();
+                     break;
+               }
+            }
+            break;
+            case PIN_NUM_LEFT_BTN:
+            {
+               switch(State) {
+                  case INIT:
+                     MenuList.selectTop();
+                     break;
+                  default:
+                     VB.moveLeft();
+                     break;
+               }
+            }
+            break;
+            case PIN_NUM_RIGHT_BTN:
+            {
+               switch(State) {
+                  case INIT:
+                     break;
+                  default:
+                     VB.moveRight();
+                     break;
+               }
+            }
+            break;
+            default:
+            break;
+         }
+      }
+   }
+   MyApp::get().getGUI().drawList(&this->MenuList);
+   if(State!=INIT) {
+      VB.draw(MyApp::get().getDisplay(),50, 80);
+   }
 
 	return ReturnStateContext(nextState);
 }
 
 ErrorType SettingMenu::onShutdown() {
-//	MyApp::get().getTouch().removeObserver(TouchQueueHandle);
-  //MyApp::get().getWiFiMenu()->stopAP();
+	MyApp::get().getButtonMgr().removeObserver(QueueHandle);
 	return ErrorType();
 }
 

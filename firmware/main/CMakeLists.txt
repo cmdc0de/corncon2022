@@ -1,6 +1,7 @@
 set(srcs "./app.cpp"
    "./appconfig.cpp"
-	"./corncon22.cpp"
+  "./corncon22.cpp"
+  "./vkeyboard.cpp"
   "./menus/menu_state.cpp"
   "./menus/appbase_menu.cpp"
   "./menus/gui_list_processor.cpp"

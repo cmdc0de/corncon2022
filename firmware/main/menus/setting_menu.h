@@ -9,6 +9,7 @@
 
 #include "appbase_menu.h"
 #include <device/display/layout.h>
+#include "../appconfig.h"
 
 class SettingMenu: public AppBaseMenu {
 public:
@@ -25,13 +26,16 @@ protected:
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
 	virtual libesp::ErrorType onShutdown();
 private:
-	QueueHandle_t TouchQueueHandle;
-	libesp::StaticGridLayout MyLayout;
-  INTERNAL_STATE InternalState;
+	QueueHandle_t QueueHandle;
+   INTERNAL_STATE InternalState;
+	libesp::GUIListData MenuList;
+	libesp::GUIListItemData Items[3];
+   char Name[AppConfig::MAX_NAME_LENGTH];
 public:
-	static const int TOUCH_QUEUE_SIZE = 4;
-	static const int TOUCH_MSG_SIZE = sizeof(ButtonManagerEvent*);
+	static const int QUEUE_SIZE = 4;
+	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 	static const char *LOGTAG;
+	static const uint16_t ItemCount = uint16_t(sizeof(Items) / sizeof(Items[0]));
 };
 
 
