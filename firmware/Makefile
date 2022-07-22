@@ -7,6 +7,7 @@ menuconfig:
 
 clean:
 	idf.py clean
+	touch build.file
 
 fullclean:
 	idf.py fullclean
