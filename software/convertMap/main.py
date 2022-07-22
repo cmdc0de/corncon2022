@@ -3,6 +3,8 @@ import sys, getopt
 MapDict = {
 #empty assume black
     "" : 0x0000
+    ,"1" : 0x0000
+    ,"2" : 0x0000
 # Reserved
     ,"R": 0x0000 
 #wall
@@ -39,19 +41,28 @@ MapDict = {
     ,"BD": 0xce77
 #yellow
     ,"Y": 0xff40
-#gold door
-    ,"GD": 0xd566
+#gold 
+    ,"GL": 0xd566
+#white
+   , "O": 0xFFFF
 }
 
-def generateMap(ifile, of, v):
+def generateMap(ifile, of, pathFile, v):
     totalLines = 0
     totalUnCommentedLines = 0
     totalCells = 0
     totalErrorCells = 0
     minColPerRow = 999999 
     maxColPerRow = 0
+    pFile = None
+    pathAll = []
+    firstPathWrite = True
+    if pathFile != None:
+        pFile = open(pathFile, "w")
+
     with open(ifile) as f:
         with open(of, "wb") as ofile:
+            path = []
             for index, line in enumerate(f):
                 totalLines = totalLines +1
                 if not line.startswith("#"):
@@ -64,21 +75,24 @@ def generateMap(ifile, of, v):
                     if v:
                         print(ar)
                     data = []
+                    pathBitCount = 0
                     color = None
                     ColPerRow = 0
+                    path.append(0)
                     for c in ar:
                         if columnOne:
                             columnOne = False
                         else:
-                            totalCells=totalCells+1
-                            ColPerRow=ColPerRow+1
                             if c is None:
                                 c = "bl"
 
                             #ignore EOL
                             if c!="\n":
                                 try:
-                                    color = MapDict[c]
+                                    if c == "-":
+                                        color = MapDict["bl"]
+                                    else:
+                                        color = MapDict[c]
                                     data.append(color>>8)
                                     data.append(color&0xFF)
                                 except:
@@ -88,6 +102,22 @@ def generateMap(ifile, of, v):
                                 if color is None:
                                     print("missing entry in mapDict {} on line {}".format(c, index))
 
+                            if pFile != None:
+                                pindex = int((int(totalUnCommentedLines-1)*int(maxColPerRow))+int(ColPerRow))/int(8)
+                                if v:
+                                    print ("uncommented {} maxColPer row {} ColPerRow {} index: {} array Length: {}".format(int(totalUnCommentedLines), int(maxColPerRow), int (ColPerRow), int(pindex), len(path)))
+                                if c == "o" or c == "O" or c == "-" or c == "GL":
+                                    path[int(pindex)] |= 1<< int(pathBitCount)
+
+                                if pathBitCount >= 7:
+                                    pathBitCount = 0
+                                    path.append(0)
+                                else:
+                                    pathBitCount = pathBitCount + 1
+
+                            totalCells=totalCells+1
+                            ColPerRow=ColPerRow+1
+
                     bytes = bytearray(data)
                     ofile.write(bytes)
                     if ColPerRow<minColPerRow:
@@ -95,20 +125,31 @@ def generateMap(ifile, of, v):
 
                     if ColPerRow>maxColPerRow:
                         maxColPerRow = ColPerRow
+
+
     print("total rows processed ",totalLines)
     print("total uncommented lines processed ", totalUnCommentedLines)
     print("total cells processed ",totalCells)
     print("total errors in processing file ", totalErrorCells)
     print("Min Col Per Row ",minColPerRow)
     print("Max Col Per Row ",maxColPerRow)
+    if pFile != None:
+        pFile.write("unsigned char PathData[] = \n")
+        s = str(path)
+        s = s.replace("[","{")
+        s = s.replace("]","}")
+        pFile.write(s)
+        pFile.write(";")
+        pFile.close()
 
 
 def main(argv):
     Verbose = False
     inputfile = ''
     outputfile = ''
+    pathFile = None
     try:
-        opts, args = getopt.getopt(argv,"hvi:o:",["ifile=","ofile=","verbose"])
+        opts, args = getopt.getopt(argv,"hvi:o:p:",["ifile=","ofile=","pfile=","verbose"])
     except getopt.GetoptError:
       print ('main.py -i <inputfile> -o <outputfile>')
       sys.exit(2)
@@ -122,12 +163,14 @@ def main(argv):
             outputfile = arg
         elif opt in ("-v", "--verbose"):
             Verbose = True
+        elif opt in ("-p", "--pfile"):
+            pathFile = arg
 
     print ('Input file is ', inputfile)
     print ('Output file is ', outputfile)
 
     print ('Map Diction = ',MapDict)
-    generateMap(inputfile, outputfile, Verbose)
+    generateMap(inputfile, outputfile, pathFile, Verbose)
 
 
 # Press the green button in the gutter to run the script.
