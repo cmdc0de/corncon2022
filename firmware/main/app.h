@@ -27,6 +27,8 @@ class MenuState;
 class GameOfLife;
 class Menu3D;
 class SettingMenu;
+class BadgeTest;
+class MainNav;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -45,6 +47,16 @@ class MyAppMsg;
 
 class MyApp : public libesp::App {
 public:
+   enum LEDS {
+      ALL_OFF = 0
+      , LEFT_ONE = 0x1
+      , LEFT_TWO = 0x2
+      , LEFT_THREE = 0x8
+      , RIGHT_ONE = 0x4
+      , RIGHT_TWO = 0x10
+      , RIGHT_THREE = 0x20
+      , ALL_ON = LEFT_ONE|LEFT_TWO|LEFT_THREE|RIGHT_ONE|RIGHT_TWO|RIGHT_THREE
+   };
   enum MODE {
     ONE,
     TWO
@@ -72,6 +84,7 @@ public:
 	static MyApp &get();
 public:
 	virtual ~MyApp();
+   void setLEDs(MyApp::LEDS l);
 	uint16_t getCanvasWidth();
 	uint16_t getCanvasHeight();
 	uint16_t getLastCanvasWidthPixel();
@@ -82,6 +95,9 @@ public:
 	SettingMenu *getSettingMenu();
 	GameOfLife *getGameOfLife();
 	Menu3D *getMenu3D();
+   BadgeTest *getBadgeTest();
+   MainNav *getMainNavMap();
+
    AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);
 	uint8_t *getBackBuffer();

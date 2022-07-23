@@ -31,6 +31,8 @@
 #include <esp_spiffs.h>
 #include <device/shiftregister/software_shift.h>
 #include "appconfig.h"
+#include "menus/main_nav.h"
+#include "menus/badge_test.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -251,23 +253,8 @@ ErrorType MyApp::onRun() {
     case ONE:
       {
          SSR.enableOutput();
-         SSR.enqueueData(1,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(2,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(4,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(8,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(16,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(32,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(64,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        SSR.enqueueData(56,6);
-		vTaskDelay(500 / portTICK_RATE_MS);
-        CurrentMode = TWO;
+         setLEDs(MyApp::LEDS::ALL_ON);
+         CurrentMode = TWO;
       }
       break;
     case TWO:
@@ -313,11 +300,17 @@ libesp::GUI &MyApp::getGUI() {
 	return MyGui;
 }
 
+void MyApp::setLEDs(MyApp::LEDS l) {
+   SSR.enqueueData(l,6);
+}
+
 MenuState MyMenuState;
 libesp::DisplayMessageState DMS;
 SettingMenu MySettingMenu;
 GameOfLife GOL;
 Menu3D Menu3DRender( uint8_t(float(MyApp::FRAME_BUFFER_WIDTH)*0.8f) , uint8_t(float(MyApp::FRAME_BUFFER_HEIGHT)*0.8f));
+BadgeTest BadgeTestMenu;
+MainNav MainNavMenu;
 
 Menu3D *MyApp::getMenu3D() {
   return &Menu3DRender;
@@ -334,6 +327,16 @@ MenuState *MyApp::getMenuState() {
 SettingMenu *MyApp::getSettingMenu() {
 	return &MySettingMenu;
 }
+
+
+BadgeTest *MyApp::getBadgeTest() {
+   return &BadgeTestMenu;
+}
+
+MainNav *MyApp::getMainNavMap() {
+   return &MainNavMenu;
+}
+
 
 DisplayMessageState *MyApp::getDisplayMessageState(BaseMenu *bm, const char *msg, uint32_t msDisplay) {
 	DMS.setMessage(msg);

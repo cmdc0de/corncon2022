@@ -6,6 +6,8 @@
 #include <math/rectbbox.h>
 #include "setting_menu.h"
 #include "game_of_life.h"
+#include "badge_test.h"
+#include "main_nav.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -78,6 +80,12 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          break;
       case 1:
          nextState = MyApp::get().getGameOfLife();
+         break;
+      case 2:
+         nextState = MyApp::get().getBadgeTest();
+         break;
+      case 3:
+         nextState = MyApp::get().getMainNavMap();
          break;
       }
   }
