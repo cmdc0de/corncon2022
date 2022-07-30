@@ -8,6 +8,7 @@
 #include "game_of_life.h"
 #include "badge_test.h"
 #include "main_nav.h"
+#include "pacman.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -40,7 +41,9 @@ ErrorType MenuState::onInit() {
 	Items[2].id = 2;
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
-	Items[3].text = (const char *) "stuff";
+	Items[3].text = (const char *) "main map";
+	Items[4].id = 4;
+	Items[4].text = (const char *) "Pacman";
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
@@ -86,6 +89,9 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          break;
       case 3:
          nextState = MyApp::get().getMainNavMap();
+         break;
+      case 4:
+         nextState = MyApp::get().getPacman();
          break;
       }
   }

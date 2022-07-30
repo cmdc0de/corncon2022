@@ -26,13 +26,13 @@
 #include "freertos.h"
 #include "fatfsvfs.h"
 #include "pinconfig.h"
-#include <device/sensor/dht11.h>
 #include <math/point.h>
 #include <esp_spiffs.h>
 #include <device/shiftregister/software_shift.h>
 #include "appconfig.h"
 #include "menus/main_nav.h"
 #include "menus/badge_test.h"
+#include "menus/pacman.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -207,7 +207,7 @@ libesp::ErrorType MyApp::onInit() {
 		vTaskDelay(500 / portTICK_RATE_MS);
 		Display.drawRec(0,50,FRAME_BUFFER_WIDTH/2,10, libesp::RGBColor::GREEN);
 		Display.drawString(15,70,"Color Validation.",libesp::RGBColor::RED);
-		Display.drawString(30,85,"Sensor Clock",libesp::RGBColor::BLUE, libesp::RGBColor::WHITE,1,false);
+		Display.drawString(30,85,"CornCorn '22",libesp::RGBColor::BLUE, libesp::RGBColor::WHITE,1,false);
 		Display.swap();
 
 		vTaskDelay(1000 / portTICK_RATE_MS);
@@ -311,6 +311,7 @@ GameOfLife GOL;
 Menu3D Menu3DRender( uint8_t(float(MyApp::FRAME_BUFFER_WIDTH)*0.8f) , uint8_t(float(MyApp::FRAME_BUFFER_HEIGHT)*0.8f));
 BadgeTest BadgeTestMenu;
 MainNav MainNavMenu;
+Pacman PacmanMenu;
 
 Menu3D *MyApp::getMenu3D() {
   return &Menu3DRender;
@@ -335,6 +336,10 @@ BadgeTest *MyApp::getBadgeTest() {
 
 MainNav *MyApp::getMainNavMap() {
    return &MainNavMenu;
+}
+
+Pacman *MyApp::getPacman() {
+   return &PacmanMenu;
 }
 
 

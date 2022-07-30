@@ -29,6 +29,7 @@ class Menu3D;
 class SettingMenu;
 class BadgeTest;
 class MainNav;
+class Pacman;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -97,6 +98,7 @@ public:
 	Menu3D *getMenu3D();
    BadgeTest *getBadgeTest();
    MainNav *getMainNavMap();
+   Pacman *getPacman();
 
    AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);
