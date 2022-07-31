@@ -264,6 +264,7 @@ ErrorType MyApp::onRun() {
       break;
     case THREE:
       {
+         setLEDs(MyApp::LEDS::ALL_OFF);
         CurrentMode = FOUR;
       }
       break;

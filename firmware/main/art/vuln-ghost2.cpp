@@ -19,3 +19,7 @@ static const struct {
   "\275\377\377\014c\363\234\377\377\367\275\000\000\377\377<\347\000\000\030\306\070\306",
 };
 
+uint32_t getWidthvulnghost2() {return gimp_image.width;}
+uint32_t getHeightvulnghost2() {return gimp_image.height;}
+uint32_t getBytePerPixelvulnghost2() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatavulnghost2() {return &gimp_image.pixel_data[0];}

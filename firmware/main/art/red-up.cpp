@@ -18,3 +18,7 @@ static const struct {
   "\200@P@\331\040\321\000\000\040\321@\331@P\240\200\040\321",
 };
 
+uint32_t getWidthredup() {return gimp_image.width;}
+uint32_t getHeightredup() {return gimp_image.height;}
+uint32_t getBytePerPixelredup() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDataredup() {return &gimp_image.pixel_data[0];}

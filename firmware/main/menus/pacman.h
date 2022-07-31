@@ -21,6 +21,7 @@ protected:
 	virtual libesp::ErrorType onShutdown();
 private:
 	QueueHandle_t InternalQueueHandler;
+   static constexpr const char *LOGTAG = "PACMAN";
 };
 
 

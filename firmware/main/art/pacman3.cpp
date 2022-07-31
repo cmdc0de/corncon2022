@@ -17,3 +17,7 @@ static const struct {
   "\000\000\000\344\233%\254$\254e\264\000\000\000\000\000\000",
 };
 
+uint32_t getWidthpacman3() {return gimp_image.width;}
+uint32_t getHeightpacman3() {return gimp_image.height;}
+uint32_t getBytePerPixelpacman3() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatapacman3() {return &gimp_image.pixel_data[0];}

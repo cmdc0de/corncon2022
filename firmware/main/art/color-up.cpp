@@ -19,3 +19,7 @@ static const struct {
   "\345\177\376\263\233",
 };
 
+uint32_t getWidthcolorup() {return gimp_image.width;}
+uint32_t getHeightcolorup() {return gimp_image.height;}
+uint32_t getBytePerPixelcolorup() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatacolorup() {return &gimp_image.pixel_data[0];}

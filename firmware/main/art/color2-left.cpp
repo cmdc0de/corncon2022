@@ -17,3 +17,7 @@ static const struct {
   "\002/\004:\007",
 };
 
+uint32_t getWidthcolor2left() {return gimp_image.width;}
+uint32_t getHeightcolor2left() {return gimp_image.height;}
+uint32_t getBytePerPixelcolor2left() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatacolor2left() {return &gimp_image.pixel_data[0];}

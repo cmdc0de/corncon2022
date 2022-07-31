@@ -6,7 +6,7 @@ static const struct {
   guint  	 height;
   guint  	 bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */ 
   guint8 	 pixel_data[11 * 9 * 2 + 1];
-} red_right = {
+} gimp_image = {
   11, 9, 2,
   "\000\000\000\000\000\000\000\000\040\321\040\321\040\321\000\000\000\000\000\000\000\000\000\000\000\000\340\250@\341"
   "\040\320\340\330@\331@\331\000\250\000\000\000\000\000\000\340\260a\331\000\320y\366\363\354"
@@ -18,3 +18,7 @@ static const struct {
   "\200@P@\331\040\321\000\000\040\321@\331@P\240\200\040\321",
 };
 
+uint32_t getWidthredright() {return gimp_image.width;}
+uint32_t getHeightredright() {return gimp_image.height;}
+uint32_t getBytePerPixelredright() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDataredright() {return &gimp_image.pixel_data[0];}

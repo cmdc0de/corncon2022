@@ -17,3 +17,7 @@ static const struct {
   "\000\000\000\000\000\000\000\000\000\000\000\000\000",
 };
 
+uint32_t getWidthcherry() {return gimp_image.width;}
+uint32_t getHeightcherry() {return gimp_image.height;}
+uint32_t getBytePerPixelcherry() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatacherry() {return &gimp_image.pixel_data[0];}

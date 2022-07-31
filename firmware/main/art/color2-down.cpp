@@ -16,3 +16,7 @@ static const struct {
   ":\007[\007\371\006;\007\331\006:\007/\004\211\002[\007\032\007\000\000\032\007[\007\211\002/\004:\007",
 };
 
+uint32_t getWidthcolor2down() {return gimp_image.width;}
+uint32_t getHeightcolor2down() {return gimp_image.height;}
+uint32_t getBytePerPixelcolor2down() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatacolor2down() {return &gimp_image.pixel_data[0];}

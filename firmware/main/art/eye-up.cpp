@@ -16,3 +16,7 @@ static const struct {
   "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",
 };
 
+uint32_t getWidtheyeup() {return gimp_image.width;}
+uint32_t getHeighteyeup() {return gimp_image.height;}
+uint32_t getBytePerPixeleyeup() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDataeyeup() {return &gimp_image.pixel_data[0];}

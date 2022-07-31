@@ -18,3 +18,7 @@ static const struct {
   "!\232\031\000\000V\021W\021",
 };
 
+uint32_t getWidthvulnghost1() {return gimp_image.width;}
+uint32_t getHeightvulnghost1() {return gimp_image.height;}
+uint32_t getBytePerPixelvulnghost1() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatavulnghost1() {return &gimp_image.pixel_data[0];}

@@ -19,3 +19,7 @@ static const struct {
   "\375&\334\000\000d\273\007\375d\273\000\000&\334\007\375\243\222",
 };
 
+uint32_t getWidthcolor3down() {return gimp_image.width;}
+uint32_t getHeightcolor3down() {return gimp_image.height;}
+uint32_t getBytePerPixelcolor3down() {return gimp_image.bytes_per_pixel;}
+const uint8_t *getPixelDatacolor3down() {return &gimp_image.pixel_data[0];}
