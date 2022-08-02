@@ -8,7 +8,9 @@ namespace libesp {
 
 class VKeyboard {
 public:
-   static constexpr const char *K1 ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcedfghijklmnopqrstuvwxyz!@#$%^&*123456789";
+   static constexpr const char *K1 ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcedfghijklmnopqrstuvwxyz!@#$%^&*0123456789";
+   static constexpr const char *N1 ="0123456789";
+   static constexpr const char *Y1 ="YN";
 public:
    VKeyboard();
    libesp::ErrorType init(const char* keyBoard, uint16_t numToDraw);

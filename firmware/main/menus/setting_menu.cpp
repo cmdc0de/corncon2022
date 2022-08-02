@@ -27,8 +27,8 @@ const char *SettingMenu::LOGTAG = "SettingMenu";
 VKeyboard VB;
 
 SettingMenu::SettingMenu() : AppBaseMenu(), QueueHandle() 
-	, InternalState(INTERNAL_STATE::SHOW_ALL), MenuList("Setting", Items, 0, 0, MyApp::get().getCanvasWidth()
-   , MyApp::get().getCanvasHeight(), 0, ItemCount), Name() {
+	, InternalState(INTERNAL_STATE::SHOW_ALL), MenuList("Setting (jump saves)", Items, 0, 0, MyApp::get().getCanvasWidth()
+   , MyApp::get().getCanvasHeight(), 0, ItemCount), Name(), Position(0) {
 	
 	QueueHandle = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&QueueBuffer[0],&ButtonQueue);
 }
@@ -37,8 +37,21 @@ SettingMenu::~SettingMenu() {
 
 }
 
+enum STATES {
+  INIT
+  , ENTER_NAME
+  , ENTER_NUMBER
+  , ENTER_BOOL
+};
+static STATES State = INIT;
+static bool BValue = true;
+
 ErrorType SettingMenu::onInit() {
    memset(&Name[0],0,sizeof(Name));
+   if(MyApp::get().getConfig().isNameSet()) {
+      strcpy(&Name[0],MyApp::get().getConfig().getName());
+   }
+   BValue = MyApp::get().getConfig().ledsEnabled();
 	ButtonManagerEvent* *pe = nullptr;
 	for(int i=0;i<2;i++) {
 		if(xQueueReceive(QueueHandle, &pe, 0)) {
@@ -49,22 +62,18 @@ ErrorType SettingMenu::onInit() {
    sprintf(getRow(0),"Name: %s", &Name[0]);
    Items[0].text = getRow(0);
 	Items[1].id = 1;
-	Items[1].text = (const char *) "Set Sleep Time: ";
+   sprintf(getRow(1),"Set Sleep Time: %d", MyApp::get().getConfig().getSleepMin());
+	Items[1].text = getRow(1);
 	Items[2].id = 2;
-	Items[2].text = (const char *) "Disable LEDs: ";
+   sprintf(getRow(2),"LEDs Enabled: %s", (const char *)(MyApp::get().getConfig().ledsEnabled()?"No":"Yes"));
+	Items[2].text = getRow(2);
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(QueueHandle);
+   State = INIT;
 	return ErrorType();
 }
 
-enum STATES {
-  INIT
-  , ENTER_NAME
-  , ENTER_NUMBER
-  , ENTER_BOOL
-};
-static STATES State = INIT;
 
 BaseMenu::ReturnStateContext SettingMenu::onRun() {
 	BaseMenu *nextState = this;
@@ -77,6 +86,8 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                {
                   switch(State) {
                   case INIT:
+                     Position = 0;
+                     memset(&Name[0],0,sizeof(Name));
                      switch(MenuList.getSelectedItemID()) {
                         case 0:
                            State = ENTER_NAME;
@@ -84,6 +95,7 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            break;
                         case 1:
                            State = ENTER_NUMBER;
+                           VB.init(VKeyboard::N1,5);
                            break;
                         case 2:
                            State = ENTER_BOOL;
@@ -91,16 +103,24 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                      }
                      break;
                   case ENTER_NAME:
-                     //save Name
-                     //sprintf(getRow(0),"Name: %s", &Name[0]);
-                     State = INIT;
+                     Name[Position] = VB.getSelection();
+                     if(++Position==AppConfig::MAX_NAME_LENGTH-1) {
+                        Name[Position] = '\0';
+                        ErrorType et = MyApp::get().getConfig().setName(&Name[0]);
+                        if(!et.ok()) ESP_LOGE(LOGTAG,"Error saving name %s",et.toString());
+                        nextState = MyApp::get().getDisplayMessageState(this, "Max Name Length reached", 2000);
+                     } 
+                     sprintf(getRow(0),"Name: %s", &Name[0]);
                      break;
-                  case ENTER_NUMBER:
-                     //save
-                     State = INIT;
+                  case ENTER_NUMBER: 
+                     {
+                     int32_t v = VB.getSelection() - '0';
+                     sprintf(getRow(1),"Set Sleep Time: %d", v);
                      break;
+                     }
                   case ENTER_BOOL:
-                     State = INIT;
+                     BValue = !BValue;
+                     sprintf(getRow(2),"Disable LEDs: %s", (const char *)(BValue?"No":"Yes"));
                      break;
                   }
                }
@@ -150,15 +170,61 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                      VB.moveRight();
                      break;
                }
+               break;
             }
-            break;
+            case PIN_NUM_JUMP_BTN:
+            {
+               switch(State) {
+               case INIT:
+                  nextState = MyApp::get().getMenuState();
+                  break;
+               case ENTER_NAME: 
+                  {
+                        ErrorType et = MyApp::get().getConfig().setName(&Name[0]);
+                        if(!et.ok()) {
+                           ESP_LOGE(LOGTAG,"Error saving name %s",et.toString());
+                           nextState = MyApp::get().getDisplayMessageState(this, "Failed to save name", 2000);
+                        } else {
+                           nextState = MyApp::get().getDisplayMessageState(this, "Name Saved Successfully", 2000);
+                        }
+                  }
+                  break;
+               case ENTER_NUMBER: 
+                  {
+                        ErrorType et = MyApp::get().getConfig().setSleepMin(uint16_t(VB.getSelection()-'0'));
+                        if(!et.ok()) {
+                           ESP_LOGE(LOGTAG,"Error saving sleep time %s",et.toString());
+                           nextState = MyApp::get().getDisplayMessageState(this, "Failed to save sleep time", 2000);
+                        } else {
+                           nextState = MyApp::get().getDisplayMessageState(this, "Sleep Time Saved\nSuccessfully", 2000);
+                        }
+
+                  }
+                  break;
+               case ENTER_BOOL:
+                  {
+                        ErrorType et = MyApp::get().getConfig().setLedsEnable(BValue);
+                        if(!et.ok()) {
+                           ESP_LOGE(LOGTAG,"Error saving led enable %s",et.toString());
+                           nextState = MyApp::get().getDisplayMessageState(this, "Failed to save\nLED Enable", 2000);
+                        } else {
+                           nextState = MyApp::get().getDisplayMessageState(this, "LED Enable Saved\nSuccessfully", 2000);
+                        }
+
+                  }
+                  break;
+               default:
+                  break;
+               }
+               break;
+            }
             default:
             break;
          }
       }
    }
    MyApp::get().getGUI().drawList(&this->MenuList);
-   if(State!=INIT) {
+   if(State!=INIT && State!=ENTER_BOOL) {
       VB.draw(MyApp::get().getDisplay(),50, 80);
    }
 

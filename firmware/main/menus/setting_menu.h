@@ -31,6 +31,7 @@ private:
 	libesp::GUIListData MenuList;
 	libesp::GUIListItemData Items[3];
    char Name[AppConfig::MAX_NAME_LENGTH];
+   uint8_t Position;
 public:
 	static const int QUEUE_SIZE = 4;
 	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
