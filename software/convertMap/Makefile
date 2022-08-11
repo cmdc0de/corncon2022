@@ -3,3 +3,6 @@ plevel1:
 
 mainmap:
 	python3 main.py -i mainmap.csv -o ../../firmware/main/maps/mainmap.map -p ../../firmware/main/maps/mainmap.cpp 
+
+header:
+	python3 main.py -c 

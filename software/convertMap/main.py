@@ -142,6 +142,10 @@ def generateMap(ifile, of, pathFile, v):
         pFile.write(";")
         pFile.close()
 
+def generateCHeader():
+    for key, value in MapDict.items():
+        if key != '':
+            print(f'static constexpr const uint16_t MAP_KEYS_{key} = {value};')
 
 def main(argv):
     Verbose = False
@@ -149,7 +153,7 @@ def main(argv):
     outputfile = ''
     pathFile = None
     try:
-        opts, args = getopt.getopt(argv,"hvi:o:p:",["ifile=","ofile=","pfile=","verbose"])
+        opts, args = getopt.getopt(argv,"hvci:o:p:",["ifile=","ofile=","pfile=","verbose"])
     except getopt.GetoptError:
       print ('main.py -i <inputfile> -o <outputfile>')
       sys.exit(2)
@@ -165,6 +169,9 @@ def main(argv):
             Verbose = True
         elif opt in ("-p", "--pfile"):
             pathFile = arg
+        elif opt == '-c':
+            generateCHeader()
+            return
 
     print ('Input file is ', inputfile)
     print ('Output file is ', outputfile)
