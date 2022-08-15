@@ -67,6 +67,9 @@ ErrorType SettingMenu::onInit() {
 	Items[2].id = 2;
    sprintf(getRow(2),"LEDs Enabled: %s", (const char *)(MyApp::get().getConfig().ledsEnabled()?"No":"Yes"));
 	Items[2].text = getRow(2);
+   Items[3].id = 3;
+   sprintf(getRow(3),"Clear WIFI Config");
+   Items[3].text = getRow(3);
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(QueueHandle);
@@ -99,6 +102,11 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            break;
                         case 2:
                            State = ENTER_BOOL;
+                           break;
+                        case 3:
+                           nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                                 , "Clearing wifi data", 2000);
+                           MyApp::get().getConfig().clearConnectData();
                            break;
                      }
                      break;

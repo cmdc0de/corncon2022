@@ -30,6 +30,8 @@ class SettingMenu;
 class BadgeTest;
 class MainNav;
 class Pacman;
+class WiFiMenu;
+class ConnectionDetails;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -99,6 +101,8 @@ public:
    BadgeTest *getBadgeTest();
    MainNav *getMainNavMap();
    Pacman *getPacman();
+   WiFiMenu *getWiFiMenu();
+   ConnectionDetails *getConnectionDetailMenu();
 
    AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);

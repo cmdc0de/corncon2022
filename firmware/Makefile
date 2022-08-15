@@ -1,6 +1,5 @@
-build: build.file
+build: FORCE
 	idf.py -DCMAKE_EXPORT_COMPILE_COMMANDS=1 build
-	touch build.file
 
 menuconfig:
 	idf.py menuconfig
@@ -33,3 +32,4 @@ filesizes:
 
 build.file:
 
+FORCE:

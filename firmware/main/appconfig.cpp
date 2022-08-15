@@ -61,3 +61,50 @@ libesp::ErrorType AppConfig::setLedsEnable(bool b) {
 }
 
 
+ErrorType AppConfig::hasWiFiBeenSetup() {
+  char data[64] = {'\0'};
+  uint32_t len = sizeof(data);
+  ErrorType et = Storage->getValue(WIFISID, &data[0],len);
+  Sid = &data[0];
+  ESP_LOGI(LOGTAG,"SID = %s",Sid.c_str());
+   if(et.ok()) {
+      len = sizeof(data);
+      et = Storage->getValue(WIFIPASSWD, &data[0],len);
+      if(et.ok()) {
+         WifiPassword = &data[0];
+         ESP_LOGI(LOGTAG,"P: %s",WifiPassword.c_str());
+      } else {
+         ESP_LOGI(LOGTAG,"failed to load password: %d %s", et.getErrT(), et.toString()); 
+      }
+  } else {
+    ESP_LOGI(LOGTAG,"failed to load wifisid: %d %s", et.getErrT(), et.toString()); 
+  }
+  return et;
+}
+
+ErrorType AppConfig::clearConnectData() {
+  ErrorType et = Storage->eraseKey(WIFISID);
+  if(!et.ok()) {
+    ESP_LOGI(LOGTAG,"failed to erase key ssid: %d %s", et.getErrT(), et.toString()); 
+  } 
+  et = Storage->eraseKey(WIFIPASSWD);
+  if(!et.ok()) {
+    ESP_LOGI(LOGTAG,"failed to erase key password: %d %s", et.getErrT(), et.toString()); 
+  }
+  return et;
+}
+
+
+ErrorType AppConfig::setWifiData(const char *sid, const char *password) {
+   ErrorType et = Storage->setValue(WIFISID,sid);
+   if(et.ok()) {
+      Sid = sid;
+      ESP_LOGI(LOGTAG,"Saving SID = %s", Sid.c_str());
+      et = Storage->setValue(WIFIPASSWD,password);
+      if(et.ok()) {
+         WifiPassword = password;
+         ESP_LOGI(LOGTAG,"Saving passwrd: %s",WifiPassword.c_str());
+      }
+   }
+   return et;
+}

@@ -33,6 +33,8 @@
 #include "menus/main_nav.h"
 #include "menus/badge_test.h"
 #include "menus/pacman.h"
+#include "menus/wifi_menu.h"
+#include "menus/connection_details.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -64,6 +66,8 @@ libesp::ScalingBuffer FrameBuf(&Display, MyApp::FRAME_BUFFER_WIDTH, MyApp::FRAME
 
 static GUI MyGui(&Display);
 static libesp::SoftwareShiftRegister SSR;
+
+WiFiMenu MyWiFiMenu;
 
 const char *MyErrorMap::toString(int32_t err) {
 	return "TODO";
@@ -218,12 +222,14 @@ libesp::ErrorType MyApp::onInit() {
 
 	ESP_LOGI(LOGTAG,"After Touch Task starts: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
-    //if(MyWiFiMenu.hasWiFiBeenSetup().ok()) {
-    //  et = MyWiFiMenu.connect();
+   MyWiFiMenu.initWiFi();
+   if(getConfig().hasWiFiBeenSetup().ok()) {
+      et = MyWiFiMenu.connect();
   		setCurrentMenu(getMenuState());
-    //} else {
-    //  setCurrentMenu(getSettingMenu());
-    //}
+    } else {
+       ESP_LOGI(LOGTAG,"Wifi config not set");
+      setCurrentMenu(getMenuState());
+    }
 
 	return et;
 }
@@ -313,6 +319,11 @@ Menu3D Menu3DRender( uint8_t(float(MyApp::FRAME_BUFFER_WIDTH)*0.8f) , uint8_t(fl
 BadgeTest BadgeTestMenu;
 MainNav MainNavMenu;
 Pacman PacmanMenu;
+ConnectionDetails MyConDetails;
+
+ConnectionDetails *MyApp::getConnectionDetailMenu() {
+   return &MyConDetails;
+}
 
 Menu3D *MyApp::getMenu3D() {
   return &Menu3DRender;
@@ -328,6 +339,10 @@ MenuState *MyApp::getMenuState() {
 
 SettingMenu *MyApp::getSettingMenu() {
 	return &MySettingMenu;
+}
+
+WiFiMenu *MyApp::getWiFiMenu() {
+   return &MyWiFiMenu;
 }
 
 

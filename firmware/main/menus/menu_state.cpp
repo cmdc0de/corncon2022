@@ -9,6 +9,8 @@
 #include "badge_test.h"
 #include "main_nav.h"
 #include "pacman.h"
+#include "wifi_menu.h"
+#include "connection_details.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -44,6 +46,11 @@ ErrorType MenuState::onInit() {
 	Items[3].text = (const char *) "main map";
 	Items[4].id = 4;
 	Items[4].text = (const char *) "Pacman";
+   Items[5].id = 5;
+   if (MyApp::get().getWiFiMenu()->isConnected()) Items[5].text = (const char *) "WiFi (Connected)";
+   else Items[5].text = (const char *) "WiFi (NOT Connected)";
+   Items[6].id = 6;
+   Items[6].text = "Connection Details";
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
@@ -92,6 +99,12 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          break;
       case 4:
          nextState = MyApp::get().getPacman();
+         break;
+      case 5:
+         nextState = MyApp::get().getWiFiMenu();
+         break;
+      case 6:
+         nextState = MyApp::get().getConnectionDetailMenu();
          break;
       }
   }

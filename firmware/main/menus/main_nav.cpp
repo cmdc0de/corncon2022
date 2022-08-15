@@ -10,7 +10,7 @@
 #include "freertos.h"
 
 #include "../maps/mapkeys.h"
-#include "../maps/mainmap.cpp"
+//#include "../maps/mainmap.cpp"
 
 using libesp::RGBColor;
 using libesp::FreeRTOS;
@@ -46,13 +46,12 @@ ErrorType MainNav::onInit() {
 }
 
 BaseMenu::ReturnStateContext MainNav::onRun() {
-	BaseMenu::ReturnStateContext sr(this);
+	BaseMenu *nextState = this;
    MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getDisplay().drawImage(0,0,MainMap);
    MyApp::get().getDisplay().drawString(AvatarPos.getX(), AvatarPos.getY(),"X");
-	BaseMenu *nextState = this;
    ButtonManagerEvent *bme = nullptr;
-   bool wasFireBtnReleased = false;
+   //bool wasFireBtnReleased = false;
    uint16_t *pMap = reinterpret_cast<uint16_t*>(&main_map_start[0]);
    libesp::Point2Ds newPos(AvatarPos);
    int32_t arrayPos = -1;
@@ -92,7 +91,7 @@ BaseMenu::ReturnStateContext MainNav::onRun() {
          }
       }
    }
-	return sr;
+	return BaseMenu::ReturnStateContext(nextState);
 }
 
 ErrorType MainNav::onShutdown() {

@@ -16,7 +16,7 @@ protected:
 	virtual libesp::ErrorType onShutdown();
 private:
 	libesp::GUIListData MenuList;
-	libesp::GUIListItemData Items[5];
+	libesp::GUIListItemData Items[7];
 	QueueHandle_t InternalQueueHandler;
 	static const uint16_t ItemCount = uint16_t(sizeof(Items) / sizeof(Items[0]));
 };

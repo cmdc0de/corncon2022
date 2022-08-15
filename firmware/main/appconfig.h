@@ -1,6 +1,7 @@
 #pragma once
 
 #include <error_type.h>
+#include <net/wifi.h>
 
 namespace libesp {
    class NVS;
@@ -13,6 +14,10 @@ public:
    static constexpr const char *SLEEP_KEY="SLEEP_KEY";
    static constexpr const char *FLAGS_KEY="FLAGS_KEY";
    static constexpr const char *LOGTAG = "AppConfig";
+   static constexpr const char *WIFISID = "WIFISID";
+   static constexpr const char *WIFIPASSWD="WIFIPASSWD";
+   typedef libesp::WiFi::SSIDTYPE SSIDTYPE;
+   typedef libesp::WiFi::PASSWDTYPE PASSWDTYPE;
 public:
    AppConfig(libesp::NVS *s);
    ~AppConfig();
@@ -23,10 +28,15 @@ public:
    const char *getName() {return &Name[0];}
    uint16_t getSleepMin() {return SleepTime;}
    bool ledsEnabled() {return LedEnabled;}
+   libesp::ErrorType hasWiFiBeenSetup();
+   libesp::ErrorType clearConnectData();
+   const char *getWiFiSid() {return Sid.c_str();}
+   const char *getWiFiPassword() {return WifiPassword.c_str();}
 public:
    libesp::ErrorType setName(const char *name);
    libesp::ErrorType setSleepMin(uint16_t s);
    libesp::ErrorType setLedsEnable(bool b);
+   libesp::ErrorType setWifiData(const char *sid, const char *password);
 private:
    libesp::NVS *Storage;
    char Name[MAX_NAME_LENGTH];
@@ -37,4 +47,6 @@ private:
       };
       uint32_t Flags;
    };
+   SSIDTYPE Sid;
+   PASSWDTYPE WifiPassword;
 };
