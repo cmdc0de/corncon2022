@@ -1,22 +1,34 @@
 
 #include "appconfig.h"
 #include "error_type.h"
+#include "timezones.h"
 #include <nvs_memory.h>
 #include <string.h>
 
 using libesp::NVS;
 using libesp::ErrorType;
 
-AppConfig::AppConfig(libesp::NVS *s) :
-   Storage(s), Name(), SleepTime(3), Flags(0) {
 
-      LedEnabled= 1;
-      memset(&Name[0],0,sizeof(Name));
+
+AppConfig::AppConfig(libesp::NVS *s) :
+   Storage(s), Name(), SleepTime(3), Flags(0), TimeZone() {
+
+   LedEnabled= 1;
+   memset(&Name[0],0,sizeof(Name));
+   memset(&TimeZone[0],0,sizeof(TimeZone));
+   strcpy(&TimeZone[0],"UTC");
 }
 
 
 AppConfig::~AppConfig() {
 
+}
+
+void espsettz(const char *niceTZ) {
+   const char *esptz = getESPTZ(niceTZ);
+   setenv("TZ", esptz, 1);
+   tzset();
+   ESP_LOGI("espsettz","Timezone set to %s: %s", niceTZ, esptz);
 }
 
 libesp::ErrorType AppConfig::init() {
@@ -35,6 +47,12 @@ libesp::ErrorType AppConfig::init() {
       if(!et.ok()) {
          ESP_LOGI(LOGTAG,"Failed to load light enable %s", et.toString());
       }
+      len = sizeof(TimeZone);
+      et = Storage->getValue(TZ_KEY,&TimeZone[0],len);
+      if(!et.ok()) {
+         ESP_LOGI(LOGTAG,"Failed to load TZ %s", et.toString());
+      }
+      espsettz(&TimeZone[0]);
    }
    return et;
 }
@@ -43,6 +61,14 @@ libesp::ErrorType AppConfig::setName(const char *name) {
    ErrorType et;
    strncpy(&Name[0],name,sizeof(Name));
    et = Storage->setValue(NAME_KEY,name);
+   return et;
+}
+
+libesp::ErrorType AppConfig::setTZ(const char *tz) {
+   ErrorType et;
+   strncpy(&TimeZone[0],tz,sizeof(TimeZone));
+   et = Storage->setValue(TZ_KEY,tz);
+   espsettz(&TimeZone[0]);
    return et;
 }
 
@@ -62,7 +88,7 @@ libesp::ErrorType AppConfig::setLedsEnable(bool b) {
 
 
 ErrorType AppConfig::hasWiFiBeenSetup() {
-  char data[64] = {'\0'};
+  char data[64] = {"\0"};
   uint32_t len = sizeof(data);
   ErrorType et = Storage->getValue(WIFISID, &data[0],len);
   Sid = &data[0];

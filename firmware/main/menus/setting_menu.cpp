@@ -15,6 +15,7 @@
 #include "menu3d.h"
 #include <system.h>
 #include "../vkeyboard.h"
+#include "../timezones.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -42,9 +43,12 @@ enum STATES {
   , ENTER_NAME
   , ENTER_NUMBER
   , ENTER_BOOL
+  , ENTER_TZ
 };
+
 static STATES State = INIT;
 static bool BValue = true;
+static uint32_t TZPos = 19;
 
 ErrorType SettingMenu::onInit() {
    memset(&Name[0],0,sizeof(Name));
@@ -70,6 +74,11 @@ ErrorType SettingMenu::onInit() {
    Items[3].id = 3;
    sprintf(getRow(3),"Clear WIFI Config");
    Items[3].text = getRow(3);
+
+   Items[4].id = 4;
+   sprintf(getRow(4),"TZ: %s", MyApp::get().getConfig().getTZ());
+   Items[4].text = getRow(4);
+
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(QueueHandle);
@@ -104,9 +113,11 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            State = ENTER_BOOL;
                            break;
                         case 3:
-                           nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
-                                 , "Clearing wifi data", 2000);
+                           nextState = MyApp::get().getDisplayMessageState(this,"Clearing wifi data", 2000);
                            MyApp::get().getConfig().clearConnectData();
+                           break;
+                        case 4:
+                           State = ENTER_TZ;
                            break;
                      }
                      break;
@@ -130,6 +141,8 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                      BValue = !BValue;
                      sprintf(getRow(2),"Disable LEDs: %s", (const char *)(BValue?"No":"Yes"));
                      break;
+                  case ENTER_TZ:
+                     break;
                   }
                }
             break;
@@ -138,6 +151,10 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                switch(State) {
                   case INIT:
                      MenuList.moveUp();
+                     break;
+                  case ENTER_TZ:
+                     if(TZPos!=0) --TZPos;
+                     sprintf(getRow(4),"TZ: %s", getTZ(TZPos));
                      break;
                   default:
                      VB.reset();
@@ -150,6 +167,11 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                switch(State) {
                   case INIT:
                      MenuList.moveDown();
+                     break;
+                  case ENTER_TZ:
+                     ++TZPos;
+                     if(TZPos>getTotalTimeZones()) TZPos = 0;
+                     sprintf(getRow(4),"TZ: %s", getTZ(TZPos));
                      break;
                   default:
                      VB.reset();
@@ -221,6 +243,18 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
 
                   }
                   break;
+               case ENTER_TZ:
+                  {
+                        ErrorType et = MyApp::get().getConfig().setTZ(getTZ(TZPos));
+                        if(!et.ok()) {
+                           ESP_LOGE(LOGTAG,"Error saving TZ %s",et.toString());
+                           nextState = MyApp::get().getDisplayMessageState(this, "Failed to save TZ", 2000);
+                        } else {
+                           nextState = MyApp::get().getDisplayMessageState(this, "TZ Saved Successfully", 2000);
+                        }
+
+                  }
+                  break;
                default:
                   break;
                }
@@ -232,7 +266,7 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
       }
    }
    MyApp::get().getGUI().drawList(&this->MenuList);
-   if(State!=INIT && State!=ENTER_BOOL) {
+   if(State!=INIT && State!=ENTER_BOOL && State!=ENTER_TZ) {
       VB.draw(MyApp::get().getDisplay(),50, 80);
    }
 
