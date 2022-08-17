@@ -21,6 +21,7 @@ namespace libesp {
 class GUI;
 class DisplayDevice;
 class DisplayMessageState;
+class OTA;
 };
 
 class MenuState;
@@ -32,6 +33,7 @@ class MainNav;
 class Pacman;
 class WiFiMenu;
 class ConnectionDetails;
+class UpdateMenu;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -103,6 +105,8 @@ public:
    Pacman *getPacman();
    WiFiMenu *getWiFiMenu();
    ConnectionDetails *getConnectionDetailMenu();
+   UpdateMenu *getUpdateMenu();
+   libesp::OTA &getOTA();
 
    AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);

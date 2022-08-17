@@ -16,6 +16,7 @@
 #include <system.h>
 #include "../vkeyboard.h"
 #include "../timezones.h"
+#include "update_menu.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -72,12 +73,16 @@ ErrorType SettingMenu::onInit() {
    sprintf(getRow(2),"LEDs Enabled: %s", (const char *)(MyApp::get().getConfig().ledsEnabled()?"No":"Yes"));
 	Items[2].text = getRow(2);
    Items[3].id = 3;
-   sprintf(getRow(3),"Clear WIFI Config");
+   sprintf(getRow(3),"TZ: %s", MyApp::get().getConfig().getTZ());
    Items[3].text = getRow(3);
 
    Items[4].id = 4;
-   sprintf(getRow(4),"TZ: %s", MyApp::get().getConfig().getTZ());
+   sprintf(getRow(4),"Check for updates");
    Items[4].text = getRow(4);
+   
+   Items[5].id = 5;
+   sprintf(getRow(5),"Clear WIFI Config");
+   Items[5].text = getRow(5);
 
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
@@ -113,11 +118,14 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            State = ENTER_BOOL;
                            break;
                         case 3:
-                           nextState = MyApp::get().getDisplayMessageState(this,"Clearing wifi data", 2000);
-                           MyApp::get().getConfig().clearConnectData();
+                           State = ENTER_TZ;
                            break;
                         case 4:
-                           State = ENTER_TZ;
+                           nextState = MyApp::get().getUpdateMenu();
+                           break;
+                        case 5:
+                           nextState = MyApp::get().getDisplayMessageState(this,"Clearing wifi data", 2000);
+                           MyApp::get().getConfig().clearConnectData();
                            break;
                      }
                      break;

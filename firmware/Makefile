@@ -30,6 +30,9 @@ size:
 filesizes:
 	idf.py -DOUTPUT_JSON=1 size-files
 
+version:
+	git log --pretty=format:"%h" -1 > version.txt
+
 build.file:
 
 FORCE:

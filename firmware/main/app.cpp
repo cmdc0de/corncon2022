@@ -35,6 +35,8 @@
 #include "menus/pacman.h"
 #include "menus/wifi_menu.h"
 #include "menus/connection_details.h"
+#include <net/ota.h>
+#include "menus/update_menu.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -68,6 +70,9 @@ static GUI MyGui(&Display);
 static libesp::SoftwareShiftRegister SSR;
 
 WiFiMenu MyWiFiMenu;
+
+const char *UPDATE_URL = "https://s3.us-west-2.amazonaws.com/online.corncon.badge/2022/corncon22.bin";
+libesp::OTA CCOTA;
 
 const char *MyErrorMap::toString(int32_t err) {
 	return "TODO";
@@ -141,6 +146,15 @@ ErrorType MyApp::initFS() {
 
 libesp::ErrorType MyApp::onInit() {
 	ErrorType et;
+   ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
+
+   CCOTA.init(UPDATE_URL);
+   CCOTA.logCurrentActiveParitionInfo();
+   if(CCOTA.isUpdateAvailable()) {
+      CCOTA.applyUpdate(true);
+   }
+	
+   ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
    ButtonMgr.init(&SButtonInfo[0],true);
 
@@ -226,12 +240,12 @@ libesp::ErrorType MyApp::onInit() {
    if(getConfig().hasWiFiBeenSetup().ok()) {
       et = MyWiFiMenu.connect();
   		setCurrentMenu(getMenuState());
-    } else {
-       ESP_LOGI(LOGTAG,"Wifi config not set");
+   } else {
+      ESP_LOGI(LOGTAG,"Wifi config not set");
       setCurrentMenu(getMenuState());
-    }
+   }
 
-	return et;
+   return et;
 }
 
 ErrorType MyApp::onRun() {
@@ -320,6 +334,11 @@ BadgeTest BadgeTestMenu;
 MainNav MainNavMenu;
 Pacman PacmanMenu;
 ConnectionDetails MyConDetails;
+UpdateMenu MyUpdateMenu;
+
+UpdateMenu *MyApp::getUpdateMenu() {
+   return &MyUpdateMenu;
+}
 
 ConnectionDetails *MyApp::getConnectionDetailMenu() {
    return &MyConDetails;
@@ -356,6 +375,10 @@ MainNav *MyApp::getMainNavMap() {
 
 Pacman *MyApp::getPacman() {
    return &PacmanMenu;
+}
+
+libesp::OTA &MyApp::getOTA() {
+   return CCOTA;
 }
 
 
