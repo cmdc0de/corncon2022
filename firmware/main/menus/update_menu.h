@@ -18,12 +18,9 @@ protected:
 	virtual libesp::ErrorType onShutdown();
 private:
 	QueueHandle_t QueueHandle;
-	//libesp::GUIListData MenuList;
-	//libesp::GUIListItemData Items[6];
 public:
 	static const int QUEUE_SIZE = 4;
 	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 	static const char *LOGTAG;
-	//static const uint16_t ItemCount = uint16_t(sizeof(Items) / sizeof(Items[0]));
 };
 

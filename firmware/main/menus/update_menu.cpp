@@ -1,5 +1,5 @@
 /*
- * setting_state.cpp
+ * update_menu.cpp
  *
  *      Author: cmdc0de
  */
@@ -31,6 +31,8 @@ protected:
       char buffer[64] = {'\0'};
       char buffer1[64] = {'\0'};
       char buffer2[64] = {'\0'};
+	   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
+      uint32_t delayTime = 1000;
       switch(p) {
          case INIT:
             sprintf(&buffer[0], "INIT");
@@ -42,6 +44,7 @@ protected:
             sprintf(&buffer[0], "HTTP_READ");
             sprintf(&buffer1[0], "Bytes: %d", this->getSingleReadBytes());
             sprintf(&buffer2[0], "Total Bytes: %d", this->getTotalBytes());
+            delayTime = 200;
             break;
          case HTTP_READ_ERROR:
             sprintf(&buffer[0], "HTTP_READ_ERROR");
@@ -87,14 +90,14 @@ protected:
       MyApp::get().getDisplay().drawString(2,20,&buffer[0]);
       MyApp::get().getDisplay().drawString(2,40,&buffer1[0]);
       MyApp::get().getDisplay().drawString(2,60,&buffer2[0]);
+      MyApp::get().getDisplay().swap();
+	   vTaskDelay(delayTime / portTICK_RATE_MS);
    }
 };
 
 
 
-UpdateMenu::UpdateMenu() : AppBaseMenu(), QueueHandle() 
-  // MenuList("Setting (jump saves)", Items, 0, 0, MyApp::get().getCanvasWidth(), MyApp::get().getCanvasHeight(), 0, ItemCount)
-{
+UpdateMenu::UpdateMenu() : AppBaseMenu(), QueueHandle() {
 	
 	QueueHandle = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&QueueBuffer[0],&ButtonQueue);
 }
@@ -106,16 +109,13 @@ UpdateMenu::~UpdateMenu() {
 
 ErrorType UpdateMenu::onInit() {
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-  // MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(QueueHandle);
-   //State = INIT;
 	return ErrorType();
 }
 
 
 BaseMenu::ReturnStateContext UpdateMenu::onRun() {
-	BaseMenu *nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
-         , "Failed Update ", 3000);
+	BaseMenu *nextState = MyApp::get().getMenuState();
    ButtonManagerEvent *bme = nullptr;
 	if(xQueueReceive(QueueHandle, &bme, 0)) {
       delete bme;
@@ -126,7 +126,10 @@ BaseMenu::ReturnStateContext UpdateMenu::onRun() {
    if(!et.ok()) {
       char buf[64];
       sprintf(&buf[0],"Error: %s", et.toString());
+	   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
       MyApp::get().getDisplay().drawString(2,90,&buf[0]);
+      MyApp::get().getDisplay().swap();
+	   vTaskDelay(3000 / portTICK_RATE_MS);
    }
 
 	return ReturnStateContext(nextState);

@@ -82,8 +82,8 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
       }
 	}
 
-  //char buf[32] = {'\0'};
-  if(wasFireBtnReleased) {
+   //char buf[32] = {'\0'};
+   if(wasFireBtnReleased) {
       switch (MenuList.selectedItem) {
       case 0:
          nextState = MyApp::get().getSettingMenu();
@@ -107,7 +107,9 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          nextState = MyApp::get().getConnectionDetailMenu();
          break;
       }
-  }
+   }
+   if (MyApp::get().getWiFiMenu()->isConnected()) Items[5].text = (const char *) "WiFi (Connected)";
+   else Items[5].text = (const char *) "WiFi (NOT Connected)";
     
    MyApp::get().getGUI().drawList(&this->MenuList);
 	return BaseMenu::ReturnStateContext(nextState);

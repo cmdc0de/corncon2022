@@ -6,6 +6,7 @@
 #include "setting_menu.h"
 #include "game_of_life.h"
 #include "menu_state.h"
+#include <net/ota.h>
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -41,6 +42,9 @@ ErrorType BadgeTest::onInit() {
    sprintf(getRow(4),"Right: %s", OFF);
    sprintf(getRow(5),"Left: %s", OFF);
    sprintf(getRow(6),"Lights: %s", NOLEDS);
+   sprintf(getRow(7),"Version: %s", MyApp::get().getOTA().getCurrentApplicationVersion());
+   sprintf(getRow(8),"Build Date: %s", MyApp::get().getOTA().getBuildDate());
+   sprintf(getRow(9),"Build Time: %s", MyApp::get().getOTA().getBuildTime());
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();

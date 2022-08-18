@@ -151,7 +151,13 @@ libesp::ErrorType MyApp::onInit() {
    CCOTA.init(UPDATE_URL);
    CCOTA.logCurrentActiveParitionInfo();
    if(CCOTA.isUpdateAvailable()) {
-      CCOTA.applyUpdate(true);
+      ESP_LOGI(LOGTAG,"*****UPDATE AVAILABLE!!!****");
+      et = CCOTA.applyUpdate(true);
+      if(et.ok()) {
+         ESP_LOGI(LOGTAG,"UPDATE SUCCESSFUL to version %s",CCOTA.getCurrentApplicationVersion());
+      } else {
+         ESP_LOGI(LOGTAG,"UPDATE FAILED");
+      }
    }
 	
    ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
