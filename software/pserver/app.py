@@ -1,7 +1,9 @@
 import datetime
 import json
+import random
+import string
 from dataclasses import dataclass
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -19,6 +21,14 @@ class Registration(db.Model):
         self.badge_name = name
         self.registration_time = d
 
+@app.route('/v1/cc/reg', methods=['POST'])
+def reg():
+    rec = request.get_json()
+    row = Registration(rec['badge_id'],rec['badge_name'], datetime.datetime.now())
+    db.session.add(row)
+    db.session.commit()
+    return Response(json.dumps({'msg': 'success'}),status=200,mimetype='application/json')
+
 @dataclass
 class HighScore(db.Model):
     seq_id = db.Column('seq_id', db.Integer, primary_key=True, autoincrement=True)
@@ -33,15 +43,69 @@ class HighScore(db.Model):
         self.score = s
         self.score_create_date = d
 
-@app.route('/v1/cc/hello')
-def hello_world():  # put application's code here
-    return 'Hello World!'
+
+class Pair(db.Model):
+    pid = db.Column('pairing_id', db.Integer, primary_key=True, autoincrement=True)
+    bid1 = db.Column('initating_badge_id', db.String(24))
+    bname1 = db.Column('initating_badge_name', db.String(24))
+    irand1 = db.Column('initating_random', db.Integer)
+    idateTime = db.Column('initating_date_time', db.DateTime)
+    bid2 = db.Column('badge2_id', db.String(24))
+    bname2 = db.Column('badge2_name', db.String(24))
+    irand2 = db.Column('badge2_random', db.Integer)
+    idateTime2 = db.Column('badge2_date_time', db.DateTime)
+    pcode = db.Column('pairing_code', db.String(8))
+
+    def __init__(self, bid, bn, rn1):
+        self.bid1 = bid
+        self.bname1 = bn
+        self.irand1 = rn1
+        self.idateTime = datetime.datetime.now()
+        letters = string.ascii_uppercase
+        self.pcode = ''.join(random.choice(letters) for i in range(8))
+
+    def update(self, b2, bn2, ir2):
+        self.bid2 = b2
+        self.bname2 = bn2
+        self.irand2 = ir2
+        self.idateTime2 = datetime.datetime.now()
+
+@app.route('/v1/cc/pair', methods=['POST'])
+def pair():
+    r = request.get_json()
+    row = Pair(r['badge_id'],r['badge_name'], r['rand'])
+    db.session.add(row)
+    db.session.commit()
+    j = '{{"pcode":"{0}"}}'.format(row.pcode)
+    return Response(j,status=201,mimetype='application/json')
+
+@app.route('/v1/cc/status/<pc>', methods=['GET'])
+def status(pc):
+    sql = "select * from pair where pairing_code = '{0}' and badge2_date_time is not null".format(pc)
+    rows = db.session.execute(sql).fetchone();
+    if rows is None:
+        return Response("{'r':0}",status=404,mimetype='application/json')
+    else:
+        return Response(json.dumps(dict(rows)), status=200, mimetype='application/json')
+
+@app.route('/v1/cc/pair2/<pc>', methods=['POST'])
+def pair2(pc):
+    rec = request.get_json()
+    sql2 = "update pair set badge2_id = '{0}', badge2_name = '{1}', badge2_random = {2}, badge2_date_time = datetime('now') where pairing_code = '{3}'".format(
+        rec['badge_id'],rec['badge_name'],rec['rand'],pc)
+    db.session.execute(sql2)
+    db.session.commit()
+    sql = "select * from pair where pairing_code = '{0}' and badge2_date_time is not null".format(pc)
+    rows = db.session.execute(sql).fetchone();
+    if rows is None:
+        return Response("{'r':0}",status=404,mimetype='application/json')
+    else:
+        return Response(json.dumps(dict(rows)), status=200, mimetype='application/json')
 
 @app.route('/v1/cc/scores', methods=['GET'])
 def get_scores():
-    #rows = db.session.query(HighScore).order_by(HighScore.score).limit(10).all()
     rows = db.session.execute("select * from high_score order by score desc limit 10")
-    return json.dumps([dict(r) for r in rows])
+    return Response(json.dumps([dict(r) for r in rows]),status=200,mimetype='application/json')
 
 @app.route('/v1/cc/score', methods=['POST'])
 def add_score():
@@ -49,27 +113,8 @@ def add_score():
     row = HighScore(rec['badge_id'],rec['badge_name'], rec['score'], datetime.datetime.now())
     db.session.add(row)
     db.session.commit()
-    return json.dumps({'msg': 'success'})
+    return Response(json.dumps({'msg': 'success'}),status=200,mimetype='application/json')
 
-@app.route('/v1/cc/register', methods=['POST'])
-def register():
-    record = request.get_json()
-    row = Registration(record['badge_id'],record['badge_name'], datetime.datetime.now())
-    db.session.add(row)
-    db.session.commit()
-    return json.dumps({'msg': 'success'})
-
-@app.route('/v1/cc/pair')
-def pair():
-    return 'json'
-
-@app.route('/v1/cc/status')
-def status():
-    return 0
-
-@app.route('/v1/cc/pair2')
-def pair2():
-    return 'json'
 
 if __name__ == '__main__':
     app.run()

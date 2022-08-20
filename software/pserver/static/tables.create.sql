@@ -4,16 +4,18 @@ create table pair (
      pairing_id integer primary key autoincrement
    , initating_badge_id text not null
    , initating_badge_name text not null
-   , initating_random random not null
+   , initating_random integer not null
    , initating_date_time text not null
+   , pairing_code text not null
    , badge2_id text
    , badge2_name text
    , badge2_random integer
    , badge2_date_time datetime
-   , pairing_code text
 );
 
 create index badge1_id on pair(initating_badge_id);
+
+create unique index pcode on pair(pairing_code);
 
 drop table registration;
 
