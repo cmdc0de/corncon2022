@@ -37,6 +37,8 @@
 #include "menus/connection_details.h"
 #include <net/ota.h>
 #include "menus/update_menu.h"
+#include "menus/high_score.h"
+#include "menus/pair.h"
 
 using libesp::ErrorType;
 using libesp::System;
@@ -341,6 +343,17 @@ MainNav MainNavMenu;
 Pacman PacmanMenu;
 ConnectionDetails MyConDetails;
 UpdateMenu MyUpdateMenu;
+HighScore MyHighScore;
+PairMenu MyPairMenu;
+
+
+PairMenu *MyApp::getPairMenu() {
+   return &MyPairMenu;
+}
+
+HighScore *MyApp::getHighScores() {
+   return &MyHighScore;
+}
 
 UpdateMenu *MyApp::getUpdateMenu() {
    return &MyUpdateMenu;

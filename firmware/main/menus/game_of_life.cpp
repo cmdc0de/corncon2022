@@ -121,7 +121,7 @@ void GameOfLife::initGame() {
 	CurrentGeneration = 0;
 	Neighborhood = (start & 1) == 0 ? 'm' : 'v';
 	uint32_t rNum = 10;
-  ESP_LOGI(LOGTAG, "after random %u", rNum);
+  //ESP_LOGI(LOGTAG, "after random %u", rNum);
   start = rNum%16000;
 	srand(start);
 	short chanceToBeAlive = rand() % 50;

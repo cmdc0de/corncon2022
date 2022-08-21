@@ -44,7 +44,13 @@ ErrorType BadgeTest::onInit() {
    sprintf(getRow(6),"Lights: %s", NOLEDS);
    sprintf(getRow(7),"Version: %s", MyApp::get().getOTA().getCurrentApplicationVersion());
    sprintf(getRow(8),"Build Date: %s", MyApp::get().getOTA().getBuildDate());
-   sprintf(getRow(9),"Build Time: %s", MyApp::get().getOTA().getBuildTime());
+//   sprintf(getRow(9),"Build Time: %s", MyApp::get().getOTA().getBuildTime());
+   sprintf(getRow(9),"BK:%s BL:%s R:%s",MyApp::get().getConfig().isPariedWithColor(BadgeColor::BLACK)?"Y":"N"
+         , MyApp::get().getConfig().isPariedWithColor(BadgeColor::BLUE)?"Y":"N"
+         , MyApp::get().getConfig().isPariedWithColor(BadgeColor::RED)?"Y":"N");
+   sprintf(getRow(10)," G:%s  P:%s W:%s",MyApp::get().getConfig().isPariedWithColor(BadgeColor::GREEN)?"Y":"N"
+         , MyApp::get().getConfig().isPariedWithColor(BadgeColor::PURPLE)?"Y":"N"
+         , MyApp::get().getConfig().isPariedWithColor(BadgeColor::WHITE)?"Y":"N");
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();

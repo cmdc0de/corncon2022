@@ -34,6 +34,8 @@ class Pacman;
 class WiFiMenu;
 class ConnectionDetails;
 class UpdateMenu;
+class HighScore;
+class PairMenu;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -61,6 +63,10 @@ public:
       , RIGHT_TWO = 0x10
       , RIGHT_THREE = 0x20
       , ALL_ON = LEFT_ONE|LEFT_TWO|LEFT_THREE|RIGHT_ONE|RIGHT_TWO|RIGHT_THREE
+      , LEFT_ONETWO = LEFT_ONE|LEFT_TWO
+      , LEFT_ONETWOTHREE = LEFT_ONE|LEFT_TWO|LEFT_THREE
+      , RIGHT_ONETWO = RIGHT_ONE | RIGHT_TWO
+      , RIGHT_ONETWOTHREE = RIGHT_ONE|RIGHT_TWO|RIGHT_THREE
    };
   enum MODE {
     ONE,
@@ -106,6 +112,8 @@ public:
    WiFiMenu *getWiFiMenu();
    ConnectionDetails *getConnectionDetailMenu();
    UpdateMenu *getUpdateMenu();
+   HighScore *getHighScores();
+   PairMenu *getPairMenu();
    libesp::OTA &getOTA();
 
    AppConfig &getConfig();

@@ -50,31 +50,29 @@ class Pair(db.Model):
     bid1 = db.Column('initating_badge_id', db.String(24))
     bname1 = db.Column('initating_badge_name', db.String(24))
     irand1 = db.Column('initating_random', db.Integer)
+    color1 = db.Column('initating_badge_color', db.Integer)
     idateTime = db.Column('initating_date_time', db.DateTime)
     bid2 = db.Column('badge2_id', db.String(24))
     bname2 = db.Column('badge2_name', db.String(24))
     irand2 = db.Column('badge2_random', db.Integer)
+    color2 = db.Column('badge2_badge_color', db.Integer)
     idateTime2 = db.Column('badge2_date_time', db.DateTime)
     pcode = db.Column('pairing_code', db.String(8))
 
-    def __init__(self, bid, bn, rn1):
+    def __init__(self, bid, bn, rn1, c1):
         self.bid1 = bid
         self.bname1 = bn
         self.irand1 = rn1
+        self.color1 = c1
         self.idateTime = datetime.datetime.now()
         letters = string.ascii_uppercase
         self.pcode = ''.join(random.choice(letters) for i in range(8))
 
-    def update(self, b2, bn2, ir2):
-        self.bid2 = b2
-        self.bname2 = bn2
-        self.irand2 = ir2
-        self.idateTime2 = datetime.datetime.now()
 
 @app.route('/v1/cc/pair', methods=['POST'])
 def pair():
     r = request.get_json()
-    row = Pair(r['badge_id'],r['badge_name'], r['rand'])
+    row = Pair(r['badge_id'],r['badge_name'], r['rand'], r['badge_color'])
     db.session.add(row)
     db.session.commit()
     j = '{{"pcode":"{0}"}}'.format(row.pcode)
@@ -89,11 +87,11 @@ def status(pc):
     else:
         return Response(json.dumps(dict(rows)), status=200, mimetype='application/json')
 
-@app.route('/v1/cc/pair2/<pc>', methods=['POST'])
-def pair2(pc):
+@app.route('/v1/cc/pair2/<pc>/<color>', methods=['POST'])
+def pair2(pc, color):
     rec = request.get_json()
-    sql2 = "update pair set badge2_id = '{0}', badge2_name = '{1}', badge2_random = {2}, badge2_date_time = datetime('now') where pairing_code = '{3}'".format(
-        rec['badge_id'],rec['badge_name'],rec['rand'],pc)
+    sql2 = "update pair set badge2_id = '{0}', badge2_name = '{1}', badge2_random = {2}, badge2_badge_color = {3}, badge2_date_time = datetime('now') where pairing_code = '{4}'".format(
+        rec['badge_id'],rec['badge_name'],rec['rand'],color, pc)
     db.session.execute(sql2)
     db.session.commit()
     sql = "select * from pair where pairing_code = '{0}' and badge2_date_time is not null".format(pc)
@@ -105,7 +103,7 @@ def pair2(pc):
 
 @app.route('/v1/cc/scores', methods=['GET'])
 def get_scores():
-    rows = db.session.execute("select * from high_score order by score desc limit 10")
+    rows = db.session.execute("select * from high_score order by score desc limit 12")
     return Response(json.dumps([dict(r) for r in rows]),status=200,mimetype='application/json')
 
 @app.route('/v1/cc/score', methods=['POST'])

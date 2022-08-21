@@ -7,6 +7,16 @@ namespace libesp {
    class NVS;
 }
 
+enum BadgeColor {
+   BLACK
+   , RED
+   , WHITE
+   , BLUE
+   , PURPLE
+   , GREEN
+   , TOTAL_COLORS
+};
+
 class AppConfig {
 public:
    static constexpr const uint32_t MAX_NAME_LENGTH = 14;
@@ -18,6 +28,7 @@ public:
    static constexpr const char *LOGTAG = "AppConfig";
    static constexpr const char *WIFISID = "WIFISID";
    static constexpr const char *WIFIPASSWD="WIFIPASSWD";
+   static constexpr const char *PAIRED_BADGES="PAIRED";
    typedef libesp::WiFi::SSIDTYPE SSIDTYPE;
    typedef libesp::WiFi::PASSWDTYPE PASSWDTYPE;
 public:
@@ -36,6 +47,10 @@ public:
    const char *getWiFiPassword() {return WifiPassword.c_str();}
    const char *getTZ() { return &TimeZone[0];}
    bool isRegistered();
+   bool isPariedWithColor(const BadgeColor &bc);
+   BadgeColor getMyBadgeColor() const {return MyBadgeColor;}
+   const char *getMyBadgeColorStr() const;
+   const char *getBadgeColorStr(const BadgeColor &bc) const;
 public:
    libesp::ErrorType setName(const char *name);
    libesp::ErrorType setSleepMin(uint16_t s);
@@ -43,6 +58,7 @@ public:
    libesp::ErrorType setWifiData(const char *sid, const char *password);
    libesp::ErrorType setTZ(const char *tz);
    libesp::ErrorType setRegistered(bool b);
+   libesp::ErrorType setPairedColor(const char *bid, const char * bname, const char *pcode, const BadgeColor &bc);
 private:
    libesp::NVS *Storage;
    char Name[MAX_NAME_LENGTH];
@@ -56,4 +72,6 @@ private:
    SSIDTYPE Sid;
    PASSWDTYPE WifiPassword;
    char TimeZone[32];
+   bool PairedBadgeColors[BadgeColor::TOTAL_COLORS];
+   BadgeColor MyBadgeColor;
 };

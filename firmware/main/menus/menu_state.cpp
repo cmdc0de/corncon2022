@@ -11,6 +11,8 @@
 #include "pacman.h"
 #include "wifi_menu.h"
 #include "connection_details.h"
+#include "high_score.h"
+#include "pair.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -19,7 +21,6 @@ using libesp::Point2Ds;
 
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[MenuState::QUEUE_SIZE*MenuState::MSG_SIZE] = {0};
-static const char *LOGTAG = "MenuState";
 
 MenuState::MenuState() :
 	AppBaseMenu(), MenuList("Main Menu", Items, 0, 0, MyApp::get().getCanvasWidth(), MyApp::get().getCanvasHeight(), 0, ItemCount) {
@@ -31,6 +32,7 @@ MenuState::~MenuState() {
 }
 
 ErrorType MenuState::onInit() {
+   MyApp::get().setLEDs(MyApp::LEDS::ALL_OFF);
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    Items[0].id = 0;
 	if (MyApp::get().getConfig().isNameSet()) {
@@ -51,6 +53,12 @@ ErrorType MenuState::onInit() {
    else Items[5].text = (const char *) "WiFi (NOT Connected)";
    Items[6].id = 6;
    Items[6].text = "Connection Details";
+   Items[7].id = 7;
+   Items[7].text = "High Scores";
+   Items[8].id = 8;
+   Items[8].text = "Initiate Pair";
+   Items[9].id = 9;
+   Items[9].text = "Pair";
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
@@ -61,7 +69,7 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
    ButtonManagerEvent *bme = nullptr;
    bool wasFireBtnReleased = false;
 	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-		ESP_LOGI(LOGTAG,"que");
+		//ESP_LOGI(LOGTAG,"que");
       if(bme->wasReleased()) {
          switch(bme->getButton()) {
             case PIN_NUM_FIRE_BTN:
@@ -105,6 +113,17 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          break;
       case 6:
          nextState = MyApp::get().getConnectionDetailMenu();
+         break;
+      case 7:
+         nextState = MyApp::get().getHighScores();
+         break;
+      case 8:
+         MyApp::get().getPairMenu()->initatePair(true);
+         nextState = MyApp::get().getPairMenu();
+         break;
+      case 9:
+         MyApp::get().getPairMenu()->initatePair(false);
+         nextState = MyApp::get().getPairMenu();
          break;
       }
    }

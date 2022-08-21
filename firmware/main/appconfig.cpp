@@ -9,14 +9,17 @@ using libesp::NVS;
 using libesp::ErrorType;
 
 
-
 AppConfig::AppConfig(libesp::NVS *s) :
-   Storage(s), Name(), SleepTime(3), Flags(0), TimeZone() {
+   Storage(s), Name(), SleepTime(3), Flags(0), TimeZone(), PairedBadgeColors()
+   , MyBadgeColor(BadgeColor::WHITE) {
 
    LedEnabled= 1;
    memset(&Name[0],0,sizeof(Name));
    memset(&TimeZone[0],0,sizeof(TimeZone));
    strcpy(&TimeZone[0],"UTC");
+   for(int i=0;i<BadgeColor::TOTAL_COLORS;++i) {
+      PairedBadgeColors[i] = false;
+   }
 }
 
 
@@ -29,6 +32,26 @@ void espsettz(const char *niceTZ) {
    setenv("TZ", esptz, 1);
    tzset();
    ESP_LOGI("espsettz","Timezone set to %s: %s", niceTZ, esptz);
+}
+
+const char *BadgeColorStr[BadgeColor::TOTAL_COLORS] = {
+   "BLACK"
+   , "RED"
+   , "WHITE"
+   , "BLUE"
+   , "PURPLE"
+   , "GREEN"
+};
+
+const char *AppConfig::getMyBadgeColorStr() const {
+   return BadgeColorStr[MyBadgeColor];
+}
+
+const char *AppConfig::getBadgeColorStr(const BadgeColor &bc) const {
+   if(bc<BadgeColor::TOTAL_COLORS) {
+      return BadgeColorStr[bc];
+   }
+   return getMyBadgeColorStr();
 }
 
 libesp::ErrorType AppConfig::init() {
@@ -53,9 +76,39 @@ libesp::ErrorType AppConfig::init() {
          ESP_LOGI(LOGTAG,"Failed to load TZ %s", et.toString());
       }
       espsettz(&TimeZone[0]);
+      len = static_cast<uint32_t>(sizeof(PairedBadgeColors));
+      et = Storage->getBlob(PAIRED_BADGES, &PairedBadgeColors[0], len);
+      if(!et.ok()) {
+         ESP_LOGI(LOGTAG,"Failed to load Paired %s", et.toString());
+      }
+      PairedBadgeColors[MyBadgeColor] = true;
+      //dump Paried bades
+      for(int i=0;i<BadgeColor::TOTAL_COLORS;++i) {
+         ESP_LOGI(LOGTAG,"Badge Color: %s. Paired wtih: %s",getBadgeColorStr(BadgeColor(i)),
+               PairedBadgeColors[i]?"YES":"NO");
+      }
    }
    return et;
 }
+   
+libesp::ErrorType AppConfig::setPairedColor(const char *bid, const char * bname, const char *pcode
+      , const BadgeColor &bc) {
+   ErrorType et;
+   ESP_LOGI(LOGTAG,"bid = %s, bname = %s, pcode = %s, color= %s", bid, bname, pcode, getBadgeColorStr(bc));
+   if(bc<TOTAL_COLORS) {
+      PairedBadgeColors[bc] = true;
+      et = Storage->setBlob(PAIRED_BADGES, &PairedBadgeColors[0], sizeof(PairedBadgeColors) );
+   }
+   return et;
+}
+
+bool AppConfig::isPariedWithColor(const BadgeColor &bc) {
+   if(bc<TOTAL_COLORS) {
+      return PairedBadgeColors[bc];
+   }
+   return false;
+}
+
 
 bool AppConfig::isRegistered() {
    uint16_t r = 0;

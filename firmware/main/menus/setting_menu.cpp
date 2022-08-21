@@ -89,8 +89,12 @@ ErrorType SettingMenu::onInit() {
    Items[5].text = getRow(5);
    
    Items[6].id = 6;
-   sprintf(getRow(6),"Clear WIFI Config");
+   sprintf(getRow(6),"Color: %s", MyApp::get().getConfig().getMyBadgeColorStr());
    Items[6].text = getRow(6);
+   
+   Items[7].id = 7;
+   sprintf(getRow(6),"Clear WIFI Config");
+   Items[7].text = getRow(6);
 
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
@@ -208,6 +212,8 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            nextState = MyApp::get().getUpdateMenu();
                            break;
                         case 6:
+                           break;
+                        case 7:
                            nextState = MyApp::get().getDisplayMessageState(this,"Clearing wifi data", 2000);
                            MyApp::get().getConfig().clearConnectData();
                            break;

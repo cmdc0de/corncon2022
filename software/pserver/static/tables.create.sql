@@ -5,11 +5,13 @@ create table pair (
    , initating_badge_id text not null
    , initating_badge_name text not null
    , initating_random integer not null
+   , initating_badge_color integer not null
    , initating_date_time text not null
    , pairing_code text not null
    , badge2_id text
    , badge2_name text
    , badge2_random integer
+   , badge2_badge_color integer
    , badge2_date_time datetime
 );
 
