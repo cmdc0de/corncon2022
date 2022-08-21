@@ -3,7 +3,7 @@
 #include <device/display/display_device.h>
 #include "app.h"
 
-//static constexpr const char *K1 ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcedfghijklmnopqrstuvwxyz!@#$%^&*123456789";
+//static constexpr const char *K1 ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*123456789";
 static const char *LOGTAG = "VKeyBoard";
 
 VKeyboard::VKeyboard() : Position(0), KeyBoard(0), SizeOfKeyBoard(0)

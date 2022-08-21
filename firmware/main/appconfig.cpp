@@ -57,6 +57,21 @@ libesp::ErrorType AppConfig::init() {
    return et;
 }
 
+bool AppConfig::isRegistered() {
+   uint16_t r = 0;
+   if(Storage->getValue(REGISTRATION_KEY,r).ok()) {
+      if(r==1) return true;
+   }
+   return false;
+}
+
+libesp::ErrorType AppConfig::setRegistered(bool b) {
+   ErrorType et;
+   uint16_t r = b?1:0;
+   et = Storage->setValue(REGISTRATION_KEY,r);
+   return et;
+}
+
 libesp::ErrorType AppConfig::setName(const char *name) {
    ErrorType et;
    strncpy(&Name[0],name,sizeof(Name));

@@ -5,6 +5,7 @@ import string
 from dataclasses import dataclass
 from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
+import logging
 
 app = Flask(__name__)
 app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/my.db'

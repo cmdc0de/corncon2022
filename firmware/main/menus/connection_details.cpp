@@ -70,6 +70,14 @@ void ConnectionDetails::updateMenu() {
    } else {
       Items[1].id = 1;
       Items[1].text = "Connect";
+      Items[2].id = 2;
+      Items[2].text = "";
+      Items[3].id = 3;
+      Items[3].text = "";
+      Items[4].id = 4;
+      Items[4].text = "";
+      Items[5].id = 5;
+      Items[5].text = "";
    }
 }
 
@@ -96,7 +104,7 @@ BaseMenu::ReturnStateContext ConnectionDetails::onRun() {
                      MyApp::get().getWiFiMenu()->disconnect();
                   }
                } else {
-                  if(MenuList.selectedItem==2) {
+                  if(MenuList.getSelectedItemID()==1) {
                      MyApp::get().getWiFiMenu()->connect();
                   }
                }

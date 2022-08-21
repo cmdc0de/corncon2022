@@ -17,6 +17,9 @@
 #include "../vkeyboard.h"
 #include "../timezones.h"
 #include "update_menu.h"
+#include "esp_http_client.h"
+#include <cJSON.h>
+#include <net/esp32inet.h>
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -72,17 +75,22 @@ ErrorType SettingMenu::onInit() {
 	Items[2].id = 2;
    sprintf(getRow(2),"LEDs Enabled: %s", (const char *)(MyApp::get().getConfig().ledsEnabled()?"No":"Yes"));
 	Items[2].text = getRow(2);
+
    Items[3].id = 3;
-   sprintf(getRow(3),"TZ: %s", MyApp::get().getConfig().getTZ());
+   sprintf(getRow(3),"Registered: %s", MyApp::get().getConfig().isRegistered()?"YES":"NO");
    Items[3].text = getRow(3);
 
    Items[4].id = 4;
-   sprintf(getRow(4),"Check for updates");
+   sprintf(getRow(4),"TZ: %s", MyApp::get().getConfig().getTZ());
    Items[4].text = getRow(4);
-   
+
    Items[5].id = 5;
-   sprintf(getRow(5),"Clear WIFI Config");
+   sprintf(getRow(5),"Check for updates");
    Items[5].text = getRow(5);
+   
+   Items[6].id = 6;
+   sprintf(getRow(6),"Clear WIFI Config");
+   Items[6].text = getRow(6);
 
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
@@ -91,6 +99,68 @@ ErrorType SettingMenu::onInit() {
 	return ErrorType();
 }
 
+static void http_cleanup(esp_http_client_handle_t client) {
+    esp_http_client_close(client);
+    esp_http_client_cleanup(client);
+}
+
+static const char *REG_URL="http://192.168.5.41:5000/v1/cc/reg";
+
+ErrorType SettingMenu::doRegistration() {
+   ErrorType et;
+   char readBuf[1024] = {'\0'};
+   esp_http_client_config_t config;
+   memset(&config,0,sizeof(config));
+   config.url = REG_URL;
+   config.timeout_ms = 25000;
+   config.keep_alive_enable = true;
+   config.skip_cert_common_name_check = true;
+   config.method = HTTP_METHOD_POST;
+   config.buffer_size_tx = 1024;
+   config.buffer_size = 1024;
+
+   esp_http_client_handle_t client = esp_http_client_init(&config);
+   
+   uint8_t macAddress[6];
+   char macString[14];
+   libesp::ESP32INet::get()->getSTAMacAddress(macAddress,macString);
+   cJSON *root = cJSON_CreateObject();
+   cJSON_AddStringToObject(root, "badge_name", MyApp::get().getConfig().getName());
+   cJSON_AddStringToObject(root, "badge_id", &macString[0]);
+   const char *info = cJSON_Print(root);
+  
+   esp_http_client_set_header(client, "Content-Type", "application/json");
+   et = esp_http_client_open(client, strlen(info));
+   if (et.ok()) {
+      //esp_http_client_set_post_field(client, info, strlen(info));
+      ESP_LOGI(LOGTAG,"Posting: %s",info);
+      int wlen = esp_http_client_write(client, info, strlen(info));
+      if (wlen < 0) {
+         ESP_LOGE(LOGTAG, "Write failed");
+         et = libesp::ErrorType::HTTP_SERVER_ERROR;
+      } else {
+         int32_t content_length = esp_http_client_fetch_headers(client);
+         if(content_length>0) {
+            int32_t status = esp_http_client_get_status_code(client);
+            int32_t contentLen = esp_http_client_get_content_length(client);
+    		   //vTaskDelay(1000 / portTICK_RATE_MS);
+            int32_t bytes = esp_http_client_read(client,&readBuf[0],sizeof(readBuf));
+            ESP_LOGI(LOGTAG,"status=%d contentLen=%d bytes =%d ret=%s",status,contentLen,bytes,&readBuf[0]);
+            if(status!=200) {
+               et = libesp::ErrorType::HTTP_SERVER_ERROR;
+            } else {
+               et = MyApp::get().getConfig().setRegistered(true);
+               if(!et.ok()) ESP_LOGI(LOGTAG,"setting reg failed: %s", et.toString());
+               else ESP_LOGI(LOGTAG,"Saved registration flag");
+            }
+         }
+      }
+   }
+   free((void *)info);
+   cJSON_Delete(root);
+   http_cleanup(client);
+   return et;
+}
 
 BaseMenu::ReturnStateContext SettingMenu::onRun() {
 	BaseMenu *nextState = this;
@@ -118,12 +188,26 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                            State = ENTER_BOOL;
                            break;
                         case 3:
-                           State = ENTER_TZ;
+                           if(!MyApp::get().getConfig().isRegistered()) {
+                              if(doRegistration().ok()) {
+                                 nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                                       , "Registration successful", 2000);
+                              } else {
+                                 nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                                       , "Registration failed\nTry later", 2000);
+                              }
+                           } else {
+                              nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                                 , "Already Registered", 2000);
+                           }
                            break;
                         case 4:
-                           nextState = MyApp::get().getUpdateMenu();
+                           State = ENTER_TZ;
                            break;
                         case 5:
+                           nextState = MyApp::get().getUpdateMenu();
+                           break;
+                        case 6:
                            nextState = MyApp::get().getDisplayMessageState(this,"Clearing wifi data", 2000);
                            MyApp::get().getConfig().clearConnectData();
                            break;
@@ -275,7 +359,7 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
    }
    MyApp::get().getGUI().drawList(&this->MenuList);
    if(State!=INIT && State!=ENTER_BOOL && State!=ENTER_TZ) {
-      VB.draw(MyApp::get().getDisplay(),50, 80);
+      VB.draw(MyApp::get().getDisplay(),50, 100);
    }
 
 	return ReturnStateContext(nextState);

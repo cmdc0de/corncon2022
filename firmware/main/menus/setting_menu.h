@@ -21,6 +21,7 @@ public:
 public:
 	SettingMenu();
 	virtual ~SettingMenu();
+   libesp::ErrorType doRegistration();
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
@@ -29,7 +30,7 @@ private:
 	QueueHandle_t QueueHandle;
    INTERNAL_STATE InternalState;
 	libesp::GUIListData MenuList;
-	libesp::GUIListItemData Items[6];
+	libesp::GUIListItemData Items[7];
    char Name[AppConfig::MAX_NAME_LENGTH];
    uint8_t Position;
 public:

@@ -14,6 +14,7 @@ public:
    static constexpr const char *SLEEP_KEY="SLEEP_KEY";
    static constexpr const char *FLAGS_KEY="FLAGS_KEY";
    static constexpr const char *TZ_KEY="TZ_KEY";
+   static constexpr const char *REGISTRATION_KEY="REG_KEY";
    static constexpr const char *LOGTAG = "AppConfig";
    static constexpr const char *WIFISID = "WIFISID";
    static constexpr const char *WIFIPASSWD="WIFIPASSWD";
@@ -34,12 +35,14 @@ public:
    const char *getWiFiSid() {return Sid.c_str();}
    const char *getWiFiPassword() {return WifiPassword.c_str();}
    const char *getTZ() { return &TimeZone[0];}
+   bool isRegistered();
 public:
    libesp::ErrorType setName(const char *name);
    libesp::ErrorType setSleepMin(uint16_t s);
    libesp::ErrorType setLedsEnable(bool b);
    libesp::ErrorType setWifiData(const char *sid, const char *password);
    libesp::ErrorType setTZ(const char *tz);
+   libesp::ErrorType setRegistered(bool b);
 private:
    libesp::NVS *Storage;
    char Name[MAX_NAME_LENGTH];
