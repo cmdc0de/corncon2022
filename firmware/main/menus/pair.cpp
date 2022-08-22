@@ -53,6 +53,7 @@ ErrorType PairMenu::onInit() {
    MenuList.selectTop();
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    IState = isInitator()?INIT:ENTER_PCODE;
+   Position = 0;
    if(!isInitator()) {
       VB.init(VKeyboard::K1,7);
       sprintf(getRow(0),"Enter Pairing Code:");
@@ -74,7 +75,7 @@ static void http_cleanup(esp_http_client_handle_t client) {
 
 static const char *Pair1_URL="http://192.168.5.41:5000/v1/cc/pair";
 static const char *Pair2_URL="http://192.168.5.41:5000/v1/cc/status/%s";
-static const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%d";
+static const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%u";
 
 ErrorType PairMenu::pair1() {
    ErrorType et;
@@ -134,6 +135,7 @@ ErrorType PairMenu::pair1() {
    return et;
 }
 
+
 libesp::ErrorType PairMenu::status(uint32_t timeNow) {
    ErrorType et;
    static uint32_t LastStatusTime = 0;
@@ -184,8 +186,69 @@ libesp::ErrorType PairMenu::status(uint32_t timeNow) {
    return et;
 }
 
+
+//static const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%u";
 ErrorType PairMenu::pair2() {
    ErrorType et;
+   char readBuf[1024] = {'\0'};
+   char URL[128];
+   sprintf(&URL[0],Pair3_URL,&PCode[0],static_cast<uint32_t>(MyApp::get().getConfig().getMyBadgeColor()));
+
+   esp_http_client_config_t config;
+   memset(&config,0,sizeof(config));
+   config.url = &URL[0];
+   config.timeout_ms = 15000;
+   config.keep_alive_enable = true;
+   config.skip_cert_common_name_check = true;
+   config.method = HTTP_METHOD_POST;
+   config.buffer_size_tx = sizeof(readBuf);
+   config.buffer_size = sizeof(readBuf);
+
+
+   esp_http_client_handle_t client = esp_http_client_init(&config);
+   
+   uint8_t macAddress[6];
+   char macString[14];
+   libesp::ESP32INet::get()->getSTAMacAddress(macAddress,macString);
+   cJSON *root = cJSON_CreateObject();
+   cJSON_AddStringToObject(root, "badge_name", MyApp::get().getConfig().getName());
+   cJSON_AddStringToObject(root, "badge_id", &macString[0]);
+   cJSON_AddNumberToObject(root, "rand", static_cast<double>(esp_random()));
+   const char *info = cJSON_Print(root);
+
+   esp_http_client_set_header(client, "Content-Type", "application/json");
+   et = esp_http_client_open(client, strlen(info));
+   if (et.ok()) {
+      ESP_LOGI(LOGTAG,"Posting: %s",info);
+      int wlen = esp_http_client_write(client, info, strlen(info));
+      if (wlen < 0) {
+         ESP_LOGE(LOGTAG, "Write failed");
+         et = libesp::ErrorType::HTTP_SERVER_ERROR;
+      } else {
+         int32_t content_length = esp_http_client_fetch_headers(client);
+         if(content_length>0) {
+            int32_t status = esp_http_client_get_status_code(client);
+            int32_t contentLen = esp_http_client_get_content_length(client);
+            int32_t bytes = esp_http_client_read(client,&readBuf[0],sizeof(readBuf));
+            ESP_LOGI(LOGTAG,"status=%d contentLen=%d bytes =%d ret=%s",status,contentLen,bytes,&readBuf[0]);
+            if(status!=200) {
+               et = libesp::ErrorType::HTTP_SERVER_ERROR;
+            } else {
+               cJSON *rt = cJSON_Parse(&readBuf[0]);
+               cJSON *badge_id = cJSON_GetObjectItem(rt,   "initating_badge_id");
+               cJSON *badge_name = cJSON_GetObjectItem(rt, "initating_badge_name");
+               cJSON *badge_color = cJSON_GetObjectItem(rt,"initating_badge_color");
+               et = MyApp::get().getConfig().setPairedColor(cJSON_GetStringValue(badge_id)
+                     , cJSON_GetStringValue(badge_name), &PCode[0]
+                     , static_cast<BadgeColor>(cJSON_GetNumberValue(badge_color)));
+               cJSON_Delete(rt);
+            }
+         }
+      }
+   }
+   free((void *)info);
+   cJSON_Delete(root);
+   http_cleanup(client);
    return et;
 }
 
@@ -213,7 +276,7 @@ BaseMenu::ReturnStateContext PairMenu::onRun() {
                break;
             case PIN_NUM_UP_BTN:
                if(ENTER_PCODE==IState) {
-                  if(Position>1) --Position;
+                  if(Position>=1) --Position;
                   PCode[Position]={'\0'};
                } else {
                   MenuList.moveUp();
@@ -292,6 +355,14 @@ BaseMenu::ReturnStateContext PairMenu::onRun() {
          {
             MyApp::get().setLEDs(MyApp::LEDS::RIGHT_ONETWO);
             ErrorType et = pair2();
+            if(et.ok()) {
+               MyApp::get().setLEDs(MyApp::LEDS::RIGHT_ONETWOTHREE);
+               nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                    , "Pair Successful", 2000);
+            } else {
+               nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState()
+                    , "Pairing failed\nEnsure you have\nthe corect PCode!", 2000);
+            }
          }
          break;
    }

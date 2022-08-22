@@ -93,8 +93,8 @@ ErrorType SettingMenu::onInit() {
    Items[6].text = getRow(6);
    
    Items[7].id = 7;
-   sprintf(getRow(6),"Clear WIFI Config");
-   Items[7].text = getRow(6);
+   sprintf(getRow(7),"Clear WIFI Config");
+   Items[7].text = getRow(7);
 
 	MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
    MyApp::get().getGUI().drawList(&this->MenuList);
@@ -253,6 +253,12 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                   case ENTER_TZ:
                      if(TZPos!=0) --TZPos;
                      sprintf(getRow(4),"TZ: %s", getTZ(TZPos));
+                     break;
+                  case ENTER_NAME:
+                     ESP_LOGI(LOGTAG,"HERE");
+                     if(Position>=1) --Position;
+                     Name[Position]='\0';
+                     sprintf(getRow(0),"Name: %s", &Name[0]);
                      break;
                   default:
                      VB.reset();
