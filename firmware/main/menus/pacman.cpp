@@ -7,6 +7,7 @@
 #include "../app.h"
 #include "freertos.h"
 #include "../art/sprits.h"
+#include "../spaceinvader/sprits.h"
 
 using libesp::RGBColor;
 using libesp::FreeRTOS;
@@ -16,7 +17,7 @@ using libesp::BaseMenu;
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[Pacman::QUEUE_SIZE*Pacman::MSG_SIZE] = {0};
 static libesp::DCImage PacmanMap;
-static libesp::DCImage PacmanSprite[3];
+static libesp::DCImage PacmanSprite[2];
 
 Pacman::Pacman() : AppBaseMenu() {
 	InternalQueueHandler = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&InternalQueueBuffer[0],&InternalQueue);
@@ -28,18 +29,18 @@ Pacman::Pacman() : AppBaseMenu() {
    ESP_LOGI(LOGTAG,"****size of pacmap %d ****************",(pac_map_end-pac_map_start));
    PacmanMap.pixel_data = &pac_map_start[0];
 
-   PacmanSprite[0].height = getHeightpacman1();
-   PacmanSprite[0].width = getWidthpacman1();
+   PacmanSprite[0].height = getHeightinvader1(); //getHeightpacman1();
+   PacmanSprite[0].width = getWidthinvader1();//getWidthpacman1();
    PacmanSprite[0].bytes_per_pixel = 2;
-   PacmanSprite[0].pixel_data = reinterpret_cast<const char *>(getPixelDatapacman1());
-   PacmanSprite[1].height = getHeightpacman2();
-   PacmanSprite[1].width = getWidthpacman2();
+   PacmanSprite[0].pixel_data = reinterpret_cast<const char *>(getPixelDatainvader1());//(getPixelDatapacman1());
+   PacmanSprite[1].height = getHeightinvader1a(); //getHeightpacman2();
+   PacmanSprite[1].width = getWidthinvader1a(); //getWidthpacman2();
    PacmanSprite[1].bytes_per_pixel = 2;
-   PacmanSprite[1].pixel_data = reinterpret_cast<const char *>(getPixelDatapacman2());
-   PacmanSprite[2].height = getHeightpacman2();
-   PacmanSprite[2].width = getWidthpacman2();
-   PacmanSprite[2].bytes_per_pixel = 2;
-   PacmanSprite[2].pixel_data = reinterpret_cast<const char *>(getPixelDatapacman2());
+   PacmanSprite[1].pixel_data =reinterpret_cast<const char *>(getPixelDatainvader1a());//(getPixelDatapacman2());
+  // PacmanSprite[2].height = getHeightpacman2();
+  // PacmanSprite[2].width = getWidthpacman2();
+  // PacmanSprite[2].bytes_per_pixel = 2;
+  // PacmanSprite[2].pixel_data = reinterpret_cast<const char *>(getPixelDatapacman2());
 }
 
 Pacman::~Pacman() {
@@ -79,7 +80,7 @@ BaseMenu::ReturnStateContext Pacman::onRun() {
    if(timeSinceLast>=ANIMATION_TIME) {
       LastTime = FreeRTOS::getTimeSinceStart();
       ++spriteIndex;
-      if(spriteIndex>2) spriteIndex=0;
+      if(spriteIndex>1) spriteIndex=0;
    } else {
       //ESP_LOGI(LOGTAG,"t");
    }
