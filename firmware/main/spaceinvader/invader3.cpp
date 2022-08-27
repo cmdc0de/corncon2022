@@ -1,6 +1,7 @@
 /* GIMP RGBA C-Source image dump (invader3.c) */
 
 #include  <stdint.h>
+
 static const struct {
   unsigned int 	 width;
   unsigned int 	 height;
