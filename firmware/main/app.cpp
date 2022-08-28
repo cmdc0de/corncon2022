@@ -32,7 +32,8 @@
 #include "appconfig.h"
 #include "menus/main_nav.h"
 #include "menus/badge_test.h"
-#include "menus/pacman.h"
+//#include "menus/pacman.h"
+#include "menus/space_invaders.h"
 #include "menus/wifi_menu.h"
 #include "menus/connection_details.h"
 #include <net/ota.h>
@@ -340,7 +341,8 @@ GameOfLife GOL;
 Menu3D Menu3DRender( uint8_t(float(MyApp::FRAME_BUFFER_WIDTH)*0.8f) , uint8_t(float(MyApp::FRAME_BUFFER_HEIGHT)*0.8f));
 BadgeTest BadgeTestMenu;
 MainNav MainNavMenu;
-Pacman PacmanMenu;
+//Pacman PacmanMenu;
+SpaceInvaders MySpaceInvaders;
 ConnectionDetails MyConDetails;
 UpdateMenu MyUpdateMenu;
 HighScore MyHighScore;
@@ -392,8 +394,14 @@ MainNav *MyApp::getMainNavMap() {
    return &MainNavMenu;
 }
 
+/*
 Pacman *MyApp::getPacman() {
    return &PacmanMenu;
+}
+*/
+
+SpaceInvaders *MyApp::getInvaders() {
+   return &MySpaceInvaders;
 }
 
 libesp::OTA &MyApp::getOTA() {

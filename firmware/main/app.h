@@ -16,6 +16,7 @@
 #include <device/display/layout.h>
 #include <device/hwbutton/buttonmanager.h>
 #include "appconfig.h"
+#include "menus/space_invaders.h"
 
 namespace libesp {
 class GUI;
@@ -36,6 +37,7 @@ class ConnectionDetails;
 class UpdateMenu;
 class HighScore;
 class PairMenu;
+class SpaceInvaders;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -108,7 +110,8 @@ public:
 	Menu3D *getMenu3D();
    BadgeTest *getBadgeTest();
    MainNav *getMainNavMap();
-   Pacman *getPacman();
+   //Pacman *getPacman();
+   SpaceInvaders *getInvaders();
    WiFiMenu *getWiFiMenu();
    ConnectionDetails *getConnectionDetailMenu();
    UpdateMenu *getUpdateMenu();

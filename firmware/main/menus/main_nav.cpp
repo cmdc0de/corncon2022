@@ -29,7 +29,7 @@ MainNav::MainNav() : AppBaseMenu(), InternalQueueHandler(0), AvatarPos(0,0) {
    MainMap.height = 128;
    MainMap.width = 110;
    ESP_LOGI(LOGTAG,"size of mainmap %d",(main_map_end-main_map_start));
-   MainMap.pixel_data = &main_map_start[0];
+   MainMap.pixel_data = (unsigned char *)&main_map_start[0];
 }
 
 MainNav::~MainNav() {

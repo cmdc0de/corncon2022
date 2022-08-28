@@ -8,7 +8,7 @@
 #include "game_of_life.h"
 #include "badge_test.h"
 #include "main_nav.h"
-#include "pacman.h"
+#include "space_invaders.h"
 #include "wifi_menu.h"
 #include "connection_details.h"
 #include "high_score.h"
@@ -47,7 +47,7 @@ ErrorType MenuState::onInit() {
 	Items[3].id = 3;
 	Items[3].text = (const char *) "main map";
 	Items[4].id = 4;
-	Items[4].text = (const char *) "Pacman";
+	Items[4].text = (const char *) "Invaders";
    Items[5].id = 5;
    if (MyApp::get().getWiFiMenu()->isConnected()) Items[5].text = (const char *) "WiFi (Connected)";
    else Items[5].text = (const char *) "WiFi (NOT Connected)";
@@ -106,7 +106,8 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          nextState = MyApp::get().getMainNavMap();
          break;
       case 4:
-         nextState = MyApp::get().getPacman();
+         //nextState = MyApp::get().getPacman();
+         nextState = MyApp::get().getInvaders();
          break;
       case 5:
          nextState = MyApp::get().getWiFiMenu();
