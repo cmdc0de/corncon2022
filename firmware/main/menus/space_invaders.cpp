@@ -21,12 +21,15 @@ using libesp::DCImage;
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[SpaceInvaders::QUEUE_SIZE*SpaceInvaders::MSG_SIZE] = {0};
 
-
 class Sprite {
    public:
+      static constexpr const char *LOGTAG="SPRITE";
+   public:
       Sprite(uint16_t id, uint16_t x, uint16_t y, libesp::DCImage *i)
-         : ID(id), Point(x,y), Image(i) {
-
+         : ID(id), Point(x,y), Image(i), NegXBounds(0),PosXBounds(0) {
+      NegXBounds = Image->width/2;
+      PosXBounds = 160-(Image->width/2);
+      //ESP_LOGI(LOGTAG,"minx = %d maxx = %d",NegXBounds,PosXBounds);
    }
    void draw(libesp::DisplayDevice &d) {
       d.drawImage(Point.getX(),Point.getY(),(*Image));
@@ -36,10 +39,74 @@ class Sprite {
    }
    uint16_t getID() const {return ID;}
    const libesp::Point2Dus &getPosition() {return Point;}
+   void moveXBy(int16_t v) {
+      int16_t newX = Point.getX()+v;
+      if(newX<NegXBounds) {
+         Point.setX(NegXBounds);
+      } else if(newX>PosXBounds) {
+         Point.setX(PosXBounds);
+      } else {
+         Point.setX(newX);
+      }
+   }
    protected:
       uint16_t ID;
       libesp::Point2Dus Point;
       DCImage *Image;
+      int16_t NegXBounds;
+      int16_t PosXBounds;
+};
+
+class AnimatedSprite {
+   public:
+      AnimatedSprite(uint16_t id, uint16_t x, uint16_t y, libesp::DCImage *i1, libesp::DCImage *i2,
+            uint32_t msBetweenAnimation)
+         : ID(id), Point(x,y), Images(), MSBetweenAnimation(msBetweenAnimation), LastAnimationTime(0)
+           ,Index(0), NegXBounds(0), PosXBounds(160) {
+      Images[0] = i1;
+      Images[1] = i2;
+      NegXBounds = i1->width/2;
+      PosXBounds = MyApp::get().getCanvasWidth()-(i1->width/2);
+   }
+   void draw(libesp::DisplayDevice &d) {
+      uint32_t now =libesp::FreeRTOS::getTimeSinceStart();
+      if(0==LastAnimationTime) {
+         LastAnimationTime = now;
+      }
+      if((now-LastAnimationTime)>=MSBetweenAnimation) {
+         Index= ++Index>1?0:Index;
+         LastAnimationTime = now;
+      }
+      d.drawImage(Point.getX(),Point.getY(),(*Images[Index]));
+   }
+   void reset(libesp::Point2Dus &v) {
+      LastAnimationTime = 0;
+      Point = v;
+   }
+   void moveXBy(int16_t v) {
+      int16_t newX = Point.getX()+v;
+      if(newX<NegXBounds) {
+         Point.setX(NegXBounds);
+      } else if(newX>PosXBounds) {
+         Point.setX(PosXBounds);
+      } else {
+         Point.setX(newX);
+      }
+   }
+   void moveBy(libesp::Point2Dus &v) {
+      Point+=v;
+   }
+   uint16_t getID() const {return ID;}
+   const libesp::Point2Dus &getPosition() {return Point;}
+   protected:
+      uint16_t ID;
+      libesp::Point2Dus Point;
+      DCImage *Images[2];
+      uint32_t MSBetweenAnimation;
+      uint32_t LastAnimationTime;
+      int16_t Index;
+      int16_t NegXBounds;
+      int16_t PosXBounds;
 };
 
 static DCImage Invader1Image(getWidthinvader1(),getHeightinvader1(),2,getPixelDatainvader1());
@@ -50,42 +117,42 @@ static DCImage Invader3Image(getWidthinvader3(),getHeightinvader3(),2,getPixelDa
 static DCImage Invader3aImage(getWidthinvader3a(),getHeightinvader3a(),2,getPixelDatainvader3a());
 static DCImage PlayerImage(getWidthplayer(), getHeightplayer(), 2, getPixelDataplayer());
 static DCImage BarrierImage(getWidthbarrier(),getHeightbarrier(), 2, getPixelDatabarrier());
-static Sprite SpriteRow1[6] = {
-     Sprite(0, 2,45, &Invader1Image)
-   , Sprite(1,26,45, &Invader1Image)
-   , Sprite(2,50,45, &Invader1Image)
-   , Sprite(3,74,45, &Invader1Image)
-   , Sprite(4,98,45, &Invader1Image)
-   , Sprite(5,122,45, &Invader1Image)
+static AnimatedSprite SpriteRow1[6] = {
+     AnimatedSprite(0, 2,42, &Invader1Image, &Invader1aImage, 500)
+   , AnimatedSprite(1,26,42, &Invader1Image, &Invader1aImage, 500)
+   , AnimatedSprite(2,50,42, &Invader1Image, &Invader1aImage, 500)
+   , AnimatedSprite(3,74,42, &Invader1Image, &Invader1aImage, 500)
+   , AnimatedSprite(4,98,42, &Invader1Image, &Invader1aImage, 500)
+   , AnimatedSprite(5,122,42, &Invader1Image, &Invader1aImage, 500)
 };
-static Sprite SpriteRow2[6] = {
-     Sprite(0, 2,25, &Invader2Image)
-   , Sprite(1,26,25, &Invader2Image)
-   , Sprite(2,50,25, &Invader2Image)
-   , Sprite(3,74,25, &Invader2Image)
-   , Sprite(4,98,25, &Invader2Image)
-   , Sprite(5,122,25, &Invader2Image)
+static AnimatedSprite SpriteRow2[6] = {
+     AnimatedSprite(0, 2,26, &Invader2Image, &Invader2aImage, 500)
+   , AnimatedSprite(1,26,26, &Invader2Image, &Invader2aImage, 500)
+   , AnimatedSprite(2,50,26, &Invader2Image, &Invader2aImage, 500)
+   , AnimatedSprite(3,74,26, &Invader2Image, &Invader2aImage, 500)
+   , AnimatedSprite(4,98,26, &Invader2Image, &Invader2aImage, 500)
+   , AnimatedSprite(5,122,26, &Invader2Image, &Invader2aImage, 500)
 };
-static Sprite SpriteRow3[6] = {
-     Sprite(0, 2,5, &Invader3aImage)
-   , Sprite(1,26,5, &Invader3aImage)
-   , Sprite(2,50,5, &Invader3aImage)
-   , Sprite(3,74,5, &Invader3aImage)
-   , Sprite(4,98,5, &Invader3aImage)
-   , Sprite(5,122,5, &Invader3aImage)
+static AnimatedSprite SpriteRow3[6] = {
+     AnimatedSprite(0, 2,10, &Invader3Image, &Invader3aImage, 500)
+   , AnimatedSprite(1,26,10, &Invader3Image, &Invader3aImage, 500)
+   , AnimatedSprite(2,50,10, &Invader3Image, &Invader3aImage, 500)
+   , AnimatedSprite(3,74,10, &Invader3Image, &Invader3aImage, 500)
+   , AnimatedSprite(4,98,10, &Invader3Image, &Invader3aImage, 500)
+   , AnimatedSprite(5,122,10,&Invader3Image, &Invader3aImage, 500)
 };
 static const uint32_t NUM_SPRITES_ROW1 = sizeof(SpriteRow1)/sizeof(SpriteRow1[0]);
 static const uint32_t NUM_SPRITES_ROW2 = sizeof(SpriteRow2)/sizeof(SpriteRow2[0]);
 static const uint32_t NUM_SPRITES_ROW3 = sizeof(SpriteRow3)/sizeof(SpriteRow3[0]);
 
-static Sprite Player(100,70,109,&PlayerImage);
+static Sprite Player(100,70,112,&PlayerImage);
 static Sprite Barriers[3] = {
    Sprite(90,5,80,&BarrierImage)
    ,Sprite(90,65,80,&BarrierImage)
    ,Sprite(90,120,80,&BarrierImage)
 };
 
-typedef etl::list<Sprite*,6> SPRITE_ROW;
+typedef etl::list<AnimatedSprite*,6> SPRITE_ROW;
 typedef SPRITE_ROW::iterator SPRITE_ROW_IT;
 SPRITE_ROW Row1;
 SPRITE_ROW Row2;
@@ -122,16 +189,34 @@ ErrorType SpaceInvaders::onInit() {
 	return ErrorType();
 }
 
-
-static int32_t spriteIndex = 0;
-static uint32_t LastTime = 0;
-static const uint32_t ANIMATION_TIME = 500;
+enum MOVEMENT {
+   NONE = 0
+   , RIGHT = 1
+   , LEFT = 2
+};
+static uint32_t Movement = 0;
+static uint32_t LastMovementTime = 0;
 
 BaseMenu::ReturnStateContext SpaceInvaders::onRun() {
    BaseMenu *nextState = this;
    ButtonManagerEvent *bme = nullptr;
+   MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
 	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-      nextState = MyApp::get().getMenuState();
+      switch(bme->getButton()) {
+         case PIN_NUM_JUMP_BTN:
+            if(bme->wasReleased()) nextState = MyApp::get().getMenuState();
+            break;
+         case PIN_NUM_LEFT_BTN:
+            if(bme->wasReleased()) Movement = NONE;
+            else Movement = LEFT;
+            break;
+         case PIN_NUM_RIGHT_BTN:
+            if(bme->wasReleased()) Movement = NONE;
+            else Movement = RIGHT;
+            break;
+         default:
+            break;
+      }
    } 
 
    {
@@ -155,17 +240,27 @@ BaseMenu::ReturnStateContext SpaceInvaders::onRun() {
    for(int i=0;i<3;++i) {
       Barriers[i].draw(MyApp::get().getDisplay());
    }
+   uint32_t now = FreeRTOS::getTimeSinceStart();
+   if(LastMovementTime==0) {
+      LastMovementTime = now;
+   }
+   if((now-LastMovementTime)>50) {
+      LastMovementTime = now;
+      switch(Movement) {
+      case NONE:
+         break;
+      case LEFT:
+         Player.moveXBy(-4);
+         ESP_LOGI(LOGTAG,"position %d",Player.getPosition().getX());
+         break;
+      case RIGHT:
+         Player.moveXBy(4);
+         break;
+      }
+   }
    Player.draw(MyApp::get().getDisplay());
    
 
-  uint32_t timeSinceLast = FreeRTOS::getTimeSinceStart()-LastTime;
-   if(timeSinceLast>=ANIMATION_TIME) {
-      LastTime = FreeRTOS::getTimeSinceStart();
-      ++spriteIndex;
-      if(spriteIndex>1) spriteIndex=0;
-   } else {
-      //ESP_LOGI(LOGTAG,"t");
-   }
 	return BaseMenu::ReturnStateContext(nextState);
 }
 
