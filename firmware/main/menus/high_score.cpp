@@ -130,6 +130,7 @@ BaseMenu::ReturnStateContext HighScore::onRun() {
                break;
          }
       }
+      delete bme;
    }
    switch(IState) {
       case INIT:

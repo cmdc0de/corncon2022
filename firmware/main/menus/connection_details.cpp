@@ -122,6 +122,7 @@ BaseMenu::ReturnStateContext ConnectionDetails::onRun() {
                break;
          }
       }
+      delete bme;
    }
    updateMenu();
    MyApp::get().getGUI().drawList(&this->MenuList);

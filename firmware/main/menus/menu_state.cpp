@@ -13,6 +13,7 @@
 #include "connection_details.h"
 #include "high_score.h"
 #include "pair.h"
+#include "menu3d.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -45,16 +46,16 @@ ErrorType MenuState::onInit() {
 	Items[2].id = 2;
 	Items[2].text = (const char *) "Test Badge";
 	Items[3].id = 3;
-	Items[3].text = (const char *) "main map";
+	Items[3].text = (const char *) "3D Cube";
 	Items[4].id = 4;
 	Items[4].text = (const char *) "Invaders";
    Items[5].id = 5;
-   if (MyApp::get().getWiFiMenu()->isConnected()) Items[5].text = (const char *) "WiFi (Connected)";
-   else Items[5].text = (const char *) "WiFi (NOT Connected)";
+   Items[5].text = "High Scores";
    Items[6].id = 6;
-   Items[6].text = "Connection Details";
+   if (MyApp::get().getWiFiMenu()->isConnected()) Items[6].text = (const char *) "WiFi (Connected)";
+   else Items[6].text = (const char *) "WiFi (NOT Connected)";
    Items[7].id = 7;
-   Items[7].text = "High Scores";
+   Items[7].text = "Connection Details";
    Items[8].id = 8;
    Items[8].text = "Initiate Pair";
    Items[9].id = 9;
@@ -103,20 +104,21 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          nextState = MyApp::get().getBadgeTest();
          break;
       case 3:
-         nextState = MyApp::get().getMainNavMap();
+         //nextState = MyApp::get().getMainNavMap();
+         nextState = MyApp::get().getMenu3D();
          break;
       case 4:
          //nextState = MyApp::get().getPacman();
          nextState = MyApp::get().getInvaders();
          break;
       case 5:
-         nextState = MyApp::get().getWiFiMenu();
+         nextState = MyApp::get().getHighScores();
          break;
       case 6:
-         nextState = MyApp::get().getConnectionDetailMenu();
+         nextState = MyApp::get().getWiFiMenu();
          break;
       case 7:
-         nextState = MyApp::get().getHighScores();
+         nextState = MyApp::get().getConnectionDetailMenu();
          break;
       case 8:
          MyApp::get().getPairMenu()->initatePair(true);
@@ -128,8 +130,8 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
          break;
       }
    }
-   if (MyApp::get().getWiFiMenu()->isConnected()) Items[5].text = (const char *) "WiFi (Connected)";
-   else Items[5].text = (const char *) "WiFi (NOT Connected)";
+   if (MyApp::get().getWiFiMenu()->isConnected()) Items[6].text = (const char *) "WiFi (Connected)";
+   else Items[6].text = (const char *) "WiFi (NOT Connected)";
     
    MyApp::get().getGUI().drawList(&this->MenuList);
 	return BaseMenu::ReturnStateContext(nextState);

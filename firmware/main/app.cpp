@@ -40,6 +40,7 @@
 #include "menus/update_menu.h"
 #include "menus/high_score.h"
 #include "menus/pair.h"
+#include <esp_partition.h>
 
 using libesp::ErrorType;
 using libesp::System;
@@ -149,6 +150,7 @@ ErrorType MyApp::initFS() {
 
 libesp::ErrorType MyApp::onInit() {
 	ErrorType et;
+
    ESP_LOGI(LOGTAG,"OnInit: Free: %u, Min %u", System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
 
    CCOTA.init(UPDATE_URL);

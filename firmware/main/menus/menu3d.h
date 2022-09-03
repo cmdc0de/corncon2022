@@ -8,7 +8,6 @@
 namespace libesp {
 	class DisplayDevice;
 	class RGBColor;
-  class TouchNotification;
 }
 
 
@@ -18,7 +17,7 @@ public:
 	virtual ~Menu3D();
 public:
 	static const int QUEUE_SIZE = 2;
-	static const int MSG_SIZE = sizeof(libesp::TouchNotification*);
+	static const int MSG_SIZE = sizeof(ButtonManagerEvent*);
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();

@@ -4,10 +4,23 @@
 #include "timezones.h"
 #include <nvs_memory.h>
 #include <string.h>
+#include <esp_partition.h>
 
 using libesp::NVS;
 using libesp::ErrorType;
 
+int32_t getBadgeColor() {
+   const esp_partition_t *partition = esp_partition_find_first((esp_partition_type_t)0xFD, ESP_PARTITION_SUBTYPE_ANY, "storage");
+   if(partition) {
+      int32_t read_data = -1;
+      esp_partition_read(partition, 0, &read_data, sizeof(read_data));
+      ESP_LOGI("badge COLOR","********************: %d",read_data);
+      return read_data;
+   } else {
+      ESP_LOGE("FAIL","FAILED TO OPEN PARITION");
+   }
+   return -1;
+}
 
 AppConfig::AppConfig(libesp::NVS *s) :
    Storage(s), Name(), SleepTime(3), Flags(0), TimeZone(), PairedBadgeColors()
@@ -56,6 +69,7 @@ const char *AppConfig::getBadgeColorStr(const BadgeColor &bc) const {
 
 libesp::ErrorType AppConfig::init() {
    ErrorType et;
+   MyBadgeColor = (BadgeColor)getBadgeColor();
    {
       uint32_t len = static_cast<uint32_t>(sizeof(Name));
       et = Storage->getValue(NAME_KEY,&Name[0],len);

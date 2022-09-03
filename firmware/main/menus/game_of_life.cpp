@@ -45,6 +45,7 @@ libesp::BaseMenu::ReturnStateContext GameOfLife::onRun() {
    ButtonManagerEvent *bme = nullptr;
 	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
       nextState = MyApp::get().getMenuState();
+      delete bme;
    } else {
 	   switch (InternalState) {
 	   case INIT: {

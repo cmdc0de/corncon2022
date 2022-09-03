@@ -368,6 +368,7 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
             break;
          }
       }
+      delete bme;
    }
    MyApp::get().getGUI().drawList(&this->MenuList);
    if(State!=INIT && State!=ENTER_BOOL && State!=ENTER_TZ) {

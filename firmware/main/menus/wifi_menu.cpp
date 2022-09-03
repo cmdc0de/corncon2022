@@ -208,17 +208,18 @@ libesp::BaseMenu::ReturnStateContext WiFiMenu::onRun() {
    //ESP_LOGI(LOGTAG, "CURRENT STATE = %u, size of ScanResults: %u", InternalState, ScanResults.size());
    ButtonManagerEvent *bme = nullptr;
    if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-   }
-   switch(InternalState) {
-      case INIT:
-         nextState = scan();
-      break;
-      case SCAN_RESULTS:
-         nextState = processScanList(bme);
-      break;
-      case DISPLAY_SINGLE_SSID:
-         nextState = handleSingleSid(bme);
-      break;
+      switch(InternalState) {
+         case INIT:
+            nextState = scan();
+         break;
+         case SCAN_RESULTS:
+            nextState = processScanList(bme);
+         break;
+         case DISPLAY_SINGLE_SSID:
+            nextState = handleSingleSid(bme);
+         break;
+      }
+      delete bme;
    }
 
 	return BaseMenu::ReturnStateContext(nextState);

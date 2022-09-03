@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <device/display/display_device.h>
 #include "3d/renderer.h"
+#include "device/display/color.h"
 #include "menu3d.h"
 #include "menu_state.h"
 #include "../app.h"
@@ -59,18 +60,11 @@ ErrorType Menu3D::onInit() {
 	light_dir = Vec3f(1, 1, 1);
 	eye = Vec3f(0, 2, 40);
 	rotation = 0.0f;
+	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
 }
 
 void Menu3D::initMenu3d() {
-/*
-  libesp::TouchNotification *pe = nullptr;
-	for(int i=0;i<2;i++) {
-		if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-			delete pe;
-		}
-	}
-*/
 	lookat(eye, center, up);
 	viewport((CanvasWidth / 8), (CanvasHeight / 8), CanvasWidth * 0.8, CanvasHeight * 0.8);
 	projection(-1.f / (eye - center).norm());
@@ -80,17 +74,19 @@ void Menu3D::initMenu3d() {
 }
 
 BaseMenu::ReturnStateContext Menu3D::onRun() {
-	BaseMenu::ReturnStateContext sr(this);
-/*
-  libesp::TouchNotification *pe = nullptr;
-	bool penUp = false;
-	if(xQueueReceive(InternalQueueHandler, &pe, 0)) {
-		ESP_LOGI(LOGTAG,"que");
-		penUp = !pe->isPenDown();
-		delete pe;
-    if(penUp) return ReturnStateContext(MyApp::get().getMenuState());
-	}
-*/
+	BaseMenu *nextState = this;
+   ButtonManagerEvent *bme = nullptr;
+	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+      switch(bme->getButton()) {
+         case PIN_NUM_JUMP_BTN:
+            nextState = MyApp::get().getMenuState();
+            break;
+         default:
+            break;
+      }
+      delete bme;
+   }
+
 	switch (InternalState) {
 		case INIT:
 			initMenu3d();
@@ -101,10 +97,11 @@ BaseMenu::ReturnStateContext Menu3D::onRun() {
 			render();
 			break;
 	}
-	return sr;
+	return BaseMenu::ReturnStateContext(nextState);
 }
 
 ErrorType Menu3D::onShutdown() {
+	MyApp::get().getButtonMgr().removeObserver(InternalQueueHandler);
 	return ErrorType();
 }
 
@@ -146,10 +143,21 @@ void Menu3D::line(int x0, int y0, int x1, int y1, RGBColor& color) {
 	}
 }
 
+static uint32_t LastColorChange = 0;
+static RGBColor LastColor = RGBColor::WHITE;
+
 void Menu3D::render() {
 	MyApp::get().getDisplay().fillRec(0, 0,CanvasWidth,CanvasHeight,RGBColor::BLACK);
 
-	RGBColor c = RGBColor::WHITE;
+	RGBColor c = LastColor;
+   uint32_t now = FreeRTOS::getTimeSinceStart();
+   if(0==LastColorChange) {
+      LastColorChange = now;
+   }
+   if((now-LastColorChange)>1000) {
+      LastColorChange = now;
+      LastColor = RGBColor(rand()%256,rand()%256,rand()%256);
+   }
 	FlatShader shader;
 	Matrix modelViewProj = Projection * ModelView * model.getModelTransform();
 	shader.setLightDir(light_dir);

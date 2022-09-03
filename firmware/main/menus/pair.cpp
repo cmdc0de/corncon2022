@@ -303,6 +303,7 @@ BaseMenu::ReturnStateContext PairMenu::onRun() {
                break;
          }
       }
+      delete bme;
    }
    switch(IState) {
       case INIT:
