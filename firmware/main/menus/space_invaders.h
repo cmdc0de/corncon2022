@@ -27,6 +27,7 @@ public:
 protected:
    void update(uint32_t );
    void draw(uint32_t );
+   void playerFire();
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
@@ -37,6 +38,7 @@ private:
    uint32_t Movement;
    uint32_t LastMovementTime;
    INTERNAL_STATE InternalState;
+   uint32_t Score;
    static constexpr const char *LOGTAG = "SpaceInvader";
 };
 
