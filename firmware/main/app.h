@@ -7,6 +7,7 @@
 #ifndef CORNCON22_APP_H
 #define CORNCON22_APP_H
 
+#include "device/display/display_device.h"
 #include "error_type.h"
 #include <app/app.h>
 #include <freertos/FreeRTOS.h>
@@ -38,6 +39,7 @@ class UpdateMenu;
 class HighScore;
 class PairMenu;
 class SpaceInvaders;
+class SleepMenu;
 
 enum ERRORS {
 	APP_OK = libesp::ErrorType::APP_OK
@@ -102,7 +104,7 @@ public:
 	uint16_t getCanvasHeight();
 	uint16_t getLastCanvasWidthPixel();
 	uint16_t getLastCanvasHeightPixel();
-	libesp::DisplayDevice &getDisplay();
+	libesp::TFTDisplay &getDisplay();
 	libesp::GUI &getGUI();
 	MenuState *getMenuState();
 	SettingMenu *getSettingMenu();
@@ -118,6 +120,7 @@ public:
    HighScore *getHighScores();
    PairMenu *getPairMenu();
    libesp::OTA &getOTA();
+   SleepMenu *getSleepMenu();
 
    AppConfig &getConfig();
 	libesp::DisplayMessageState *getDisplayMessageState(libesp::BaseMenu *, const char *msg, uint32_t msDisplay);
@@ -126,6 +129,9 @@ public:
 	libesp::NVS &getNVS() { return NVSStorage;}
    BtnManagerType &getButtonMgr() {return ButtonMgr;}
    const BtnManagerType &getButtonMgr() const {return ButtonMgr;}
+   void goToSleep();
+   void wakeUp();
+   bool isSleeping() const {return AmISleep;}
 protected:
 	MyApp();
    libesp::ErrorType initFS();
@@ -139,6 +145,8 @@ private:
 	libesp::NVS NVSStorage;
    BtnManagerType ButtonMgr;
    AppConfig Config;
+   bool AmISleep;
+   uint32_t LastInteractionTime;
 private:
 	static MyApp mSelf;
 };

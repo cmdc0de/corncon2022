@@ -40,6 +40,7 @@
 #include "menus/update_menu.h"
 #include "menus/high_score.h"
 #include "menus/pair.h"
+#include "menus/sleep_menu.h"
 #include <esp_partition.h>
 
 using libesp::ErrorType;
@@ -97,7 +98,7 @@ MyApp &MyApp::get() {
 }
 
 MyApp::MyApp() : AppErrors(), CurrentMode(ONE), LastTime(0), NVSStorage("appdata","data",false)
-                 , ButtonMgr(true), Config(&NVSStorage) {
+                 , ButtonMgr(true), Config(&NVSStorage), AmISleep(false), LastInteractionTime(0) {
 	ErrorType::setAppDetail(&AppErrors);
 }
 
@@ -147,6 +148,17 @@ ErrorType MyApp::initFS() {
     return ESP_OK;
 }
 
+void MyApp::goToSleep() {
+   AmISleep = true;
+   getDisplay().setBackLightOn(false);
+   getWiFiMenu()->disconnect();
+}
+
+void MyApp::wakeUp() {
+   AmISleep = false;
+   getDisplay().setBackLightOn(true);
+   getWiFiMenu()->connect();
+}
 
 libesp::ErrorType MyApp::onInit() {
 	ErrorType et;
@@ -262,12 +274,18 @@ libesp::ErrorType MyApp::onInit() {
 ErrorType MyApp::onRun() {
    ErrorType et;
    ButtonMgr.poll(); //move away from poll 
-   ButtonMgr.broadcast();
+   int32_t interactionCount = ButtonMgr.broadcast();
    libesp::BaseMenu::ReturnStateContext rsc = getCurrentMenu()->run();
 	Display.swap();
+   uint32_t now = FreeRTOS::getTimeSinceStart();
+   if(LastInteractionTime==0 || interactionCount>0) {
+      LastInteractionTime = now;
+   }
 
 	if (rsc.Err.ok()) {
-		if (getCurrentMenu() != rsc.NextMenuToRun) {
+      if((now-LastInteractionTime)>(getConfig().getSleepMin()*60*1000)) {
+         setCurrentMenu(getSleepMenu());
+      } else if (getCurrentMenu() != rsc.NextMenuToRun) {
 			setCurrentMenu(rsc.NextMenuToRun);
 			ESP_LOGI(LOGTAG,"on Menu swap: Free: %u, Min %u",
 				System::get().getFreeHeapSize(),System::get().getMinimumFreeHeapSize());
@@ -275,7 +293,7 @@ ErrorType MyApp::onRun() {
 		}
 	} 
 
-  uint32_t timeSinceLast = FreeRTOS::getTimeSinceStart()-LastTime;
+  uint32_t timeSinceLast = now-LastTime;
 
   if(timeSinceLast>=TIME_BETWEEN_PULSES) {
     LastTime = FreeRTOS::getTimeSinceStart();
@@ -324,7 +342,7 @@ uint16_t MyApp::getLastCanvasHeightPixel() {
 	return getCanvasHeight()-1;
 }
 
-libesp::DisplayDevice &MyApp::getDisplay() {
+libesp::TFTDisplay &MyApp::getDisplay() {
 	return Display;
 }
 
@@ -349,6 +367,11 @@ ConnectionDetails MyConDetails;
 UpdateMenu MyUpdateMenu;
 HighScore MyHighScore;
 PairMenu MyPairMenu;
+SleepMenu MySleepMenu;
+
+SleepMenu *MyApp::getSleepMenu() {
+   return &MySleepMenu;
+}
 
 
 PairMenu *MyApp::getPairMenu() {

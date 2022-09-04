@@ -210,7 +210,7 @@ libesp::BaseMenu::ReturnStateContext WiFiMenu::onRun() {
    if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
       switch(InternalState) {
          case INIT:
-            nextState = scan();
+         //   nextState = scan();
          break;
          case SCAN_RESULTS:
             nextState = processScanList(bme);
@@ -220,6 +220,8 @@ libesp::BaseMenu::ReturnStateContext WiFiMenu::onRun() {
          break;
       }
       delete bme;
+   } else if(InternalState==INIT) {
+      nextState = scan();
    }
 
 	return BaseMenu::ReturnStateContext(nextState);
@@ -286,7 +288,7 @@ ErrorType WiFiMenu::staDisconnected(system_event_sta_disconnected_t *info) {
   //ESP_LOGI(LOGTAG,__FUNCTION__);
   Flags=(Flags&~(CONNECTED|HAS_IP));
   NTPTime.stop();
-  if(++ReTryCount<MAX_RETRY_CONNECT_COUNT) {
+  if(++ReTryCount<MAX_RETRY_CONNECT_COUNT && !MyApp::get().isSleeping()) {
     return connect();
   }
   return ErrorType(ErrorType::MAX_RETRIES);

@@ -255,7 +255,7 @@ BaseMenu::ReturnStateContext SettingMenu::onRun() {
                      sprintf(getRow(4),"TZ: %s", getTZ(TZPos));
                      break;
                   case ENTER_NAME:
-                     ESP_LOGI(LOGTAG,"HERE");
+                     ///ESP_LOGI(LOGTAG,"HERE");
                      if(Position>=1) --Position;
                      Name[Position]='\0';
                      sprintf(getRow(0),"Name: %s", &Name[0]);

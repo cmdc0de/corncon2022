@@ -14,6 +14,7 @@
 #include "high_score.h"
 #include "pair.h"
 #include "menu3d.h"
+#include "sleep_menu.h"
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -60,6 +61,8 @@ ErrorType MenuState::onInit() {
    Items[8].text = "Initiate Pair";
    Items[9].id = 9;
    Items[9].text = "Pair";
+   Items[10].id = 10;
+   Items[10].text = "Sleep";
    MyApp::get().getGUI().drawList(&this->MenuList);
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
@@ -70,7 +73,6 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
    ButtonManagerEvent *bme = nullptr;
    bool wasFireBtnReleased = false;
 	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-		//ESP_LOGI(LOGTAG,"que");
       if(bme->wasReleased()) {
          switch(bme->getButton()) {
             case PIN_NUM_FIRE_BTN:
@@ -127,6 +129,9 @@ libesp::BaseMenu::ReturnStateContext MenuState::onRun() {
       case 9:
          MyApp::get().getPairMenu()->initatePair(false);
          nextState = MyApp::get().getPairMenu();
+         break;
+      case 10:
+         nextState = MyApp::get().getSleepMenu();
          break;
       }
    }

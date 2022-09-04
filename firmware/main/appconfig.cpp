@@ -23,7 +23,7 @@ int32_t getBadgeColor() {
 }
 
 AppConfig::AppConfig(libesp::NVS *s) :
-   Storage(s), Name(), SleepTime(3), Flags(0), TimeZone(), PairedBadgeColors()
+   Storage(s), Name(), SleepTime(2), Flags(0), TimeZone(), PairedBadgeColors()
    , MyBadgeColor(BadgeColor::WHITE) {
 
    LedEnabled= 1;
@@ -180,7 +180,7 @@ ErrorType AppConfig::hasWiFiBeenSetup() {
       et = Storage->getValue(WIFIPASSWD, &data[0],len);
       if(et.ok()) {
          WifiPassword = &data[0];
-         ESP_LOGI(LOGTAG,"P: %s",WifiPassword.c_str());
+         //ESP_LOGI(LOGTAG,"P: %s",WifiPassword.c_str());
       } else {
          ESP_LOGI(LOGTAG,"failed to load password: %d %s", et.getErrT(), et.toString()); 
       }
