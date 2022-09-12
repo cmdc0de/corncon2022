@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "esp_random.h"
 #include "space_invaders.h"
 #include <device/display/display_device.h>
 #include "device/display/color.h"
@@ -10,6 +11,7 @@
 #include "freertos.h"
 //#include "../art/sprits.h"
 #include "../spaceinvader/sprits.h"
+#include <app/display_message_state.h>
 #include <etl/list.h>
 
 using libesp::RGBColor;
@@ -21,43 +23,6 @@ using libesp::DCImage;
 static StaticQueue_t InternalQueue;
 static uint8_t InternalQueueBuffer[SpaceInvaders::QUEUE_SIZE*SpaceInvaders::MSG_SIZE] = {0};
 
-class PlayerSprite {
-public:
-   static constexpr const char *LOGTAG="PLAYER_SPRITE";
-public:
-   PlayerSprite(uint16_t id, uint16_t x, uint16_t y, libesp::DCImage *i)
-      : ID(id), Point(x,y), Image(i) {
-   }
-   void draw(libesp::DisplayDevice &d) {
-      d.drawImage(Point.getX(),Point.getY(),(*Image));
-   }
-   void moveBy(libesp::Point2Dus &v) {
-      Point+=v;
-   }
-   void set(const libesp::Point2Dus &v) {Point = v;}
-   uint16_t getID() const {return ID;}
-   const libesp::Point2Dus &getPosition() {return Point;}
-   libesp::Point2Dus getTopMid() {
-      return libesp::Point2Dus(Point.getX()+(Image->width/2),Point.getY()-(Image->height));
-   }
-   bool moveXBy(int16_t v) {
-      bool retVal = false;
-      int16_t newX = Point.getX()+v;
-      if(newX<2) {
-         Point.setX(2);
-      } else if(newX>160-Image->width) {
-         Point.setX(160-Image->width);
-      } else {
-         Point.setX(newX);
-         retVal = true;
-      }
-      return retVal;
-   }
-protected:
-   uint16_t ID;
-   libesp::Point2Dus Point;
-   DCImage *Image;
-};
 
 class Sprite {
    public:
@@ -77,6 +42,9 @@ class Sprite {
    void set(const libesp::Point2Dus &v) {Point = v;}
    uint16_t getID() const {return ID;}
    const libesp::Point2Dus &getPosition() {return Point;}
+   libesp::Point2Dus getBottomMiddle() {
+      return libesp::Point2Dus(Point.getX()+(Image->width/2),Point.getY()+Image->height);
+   }
    bool moveYBy(int16_t v) {
       bool retVal = false;
       int16_t newY = Point.getY()+v;
@@ -109,6 +77,54 @@ protected:
    uint16_t MaxXMovement;
    uint32_t Hidden:1;
 };
+
+class PlayerSprite {
+public:
+   static constexpr const char *LOGTAG="PLAYER_SPRITE";
+public:
+   PlayerSprite(uint16_t id, uint16_t x, uint16_t y, libesp::DCImage *i)
+      : ID(id), Point(x,y), Image(i) {
+   }
+   void draw(libesp::DisplayDevice &d) {
+      d.drawImage(Point.getX(),Point.getY(),(*Image));
+   }
+   void moveBy(libesp::Point2Dus &v) {
+      Point+=v;
+   }
+   void set(const libesp::Point2Dus &v) {Point = v;}
+   uint16_t getID() const {return ID;}
+   const libesp::Point2Dus &getPosition() {return Point;}
+   bool didCollide(Sprite &s) {
+      bool retVal = false;
+      libesp::Point2Dus sp = s.getBottomMiddle();
+      if(sp.getY()>Point.getY() && sp.getX()>=Point.getX() && sp.getX()<=(Point.getX()+Image->width)) {
+         retVal = true;
+      }
+      return retVal;
+   }
+   libesp::Point2Dus getTopMid() {
+      return libesp::Point2Dus(Point.getX()+(Image->width/2),Point.getY()-(Image->height));
+   }
+   bool moveXBy(int16_t v) {
+      bool retVal = false;
+      int16_t newX = Point.getX()+v;
+      if(newX<2) {
+         Point.setX(2);
+      } else if(newX>160-Image->width) {
+         Point.setX(160-Image->width);
+      } else {
+         Point.setX(newX);
+         retVal = true;
+      }
+      return retVal;
+   }
+protected:
+   uint16_t ID;
+   libesp::Point2Dus Point;
+   DCImage *Image;
+};
+
+
 
 class AnimatedSprite {
    public:
@@ -157,6 +173,9 @@ class AnimatedSprite {
    void moveBy(libesp::Point2Dus &v) {
       Point+=v;
    }
+   libesp::Point2Dus getBottomMiddle() {
+      return libesp::Point2Dus(Point.getX()+(Images[0]->width/2),Point.getY()+Images[0]->height);
+   }
    uint16_t getID() const {return ID;}
    const libesp::Point2Dus &getPosition() {return Point;}
    DCImage *getImage() {return Images[0];}
@@ -180,6 +199,7 @@ static DCImage Invader3aImage(getWidthinvader3a(),getHeightinvader3a(),2,getPixe
 static DCImage PlayerImage(getWidthplayer(), getHeightplayer(), 2, getPixelDataplayer());
 //static DCImage BarrierImage(getWidthbarrier(),getHeightbarrier(), 2, getPixelDatabarrier());
 static DCImage PlayerShotImage(getWidthplayer_shot(), getHeightplayer_shot(), 2, getPixelDataplayer_shot());
+static DCImage InvaderShotImage(getWidthinvader_shot(),getHeightplayer_shot(),2,getPixelDataplayer_shot());
 
 static constexpr const uint16_t Sprite1Distance = 24;
 static constexpr const uint16_t Sprite1XStart = 2;
@@ -214,6 +234,15 @@ static AnimatedSprite SpriteRow3[6] = {
    , AnimatedSprite(24,98,Sprite3Y, &Invader3Image, &Invader3aImage, 500)
    , AnimatedSprite(25,122,Sprite3Y,&Invader3Image, &Invader3aImage, 500)
 };
+
+static Sprite InvaderShot[4] = {
+   Sprite(40,0,0,&InvaderShotImage)
+   ,Sprite(41,0,0,&InvaderShotImage)
+   ,Sprite(42,0,0,&InvaderShotImage)
+   ,Sprite(43,0,0,&InvaderShotImage)
+};
+
+static const uint32_t NUM_INVADER_SHOTS = sizeof(InvaderShot)/sizeof(InvaderShot[0]);
 static const uint32_t NUM_SPRITES_ROW1 = sizeof(SpriteRow1)/sizeof(SpriteRow1[0]);
 static const uint32_t NUM_SPRITES_ROW2 = sizeof(SpriteRow2)/sizeof(SpriteRow2[0]);
 static const uint32_t NUM_SPRITES_ROW3 = sizeof(SpriteRow3)/sizeof(SpriteRow3[0]);
@@ -232,9 +261,11 @@ typedef SPRITE_ROW::iterator SPRITE_ROW_IT;
 SPRITE_ROW Row1;
 SPRITE_ROW Row2;
 SPRITE_ROW Row3;
+typedef etl::list<Sprite*,4> INVADER_SHOTS;
+typedef INVADER_SHOTS::iterator INVADER_SHOTS_IT;
 
 SpaceInvaders::SpaceInvaders() : AppBaseMenu(), InternalQueueHandler(), LastInvaderMoveTime(0)
-                                 , Movement(0), LastMovementTime(0), InternalState(INIT), Score(0) {
+      , Movement(0), LastMovementTime(0), InternalState(INIT), Score(0), Round(0) {
 	InternalQueueHandler = xQueueCreateStatic(QUEUE_SIZE,MSG_SIZE,&InternalQueueBuffer[0],&InternalQueue);
 
 }
@@ -242,18 +273,24 @@ SpaceInvaders::~SpaceInvaders() {
 
 }
 
-
-ErrorType SpaceInvaders::onInit() {
-   for(int i=0;i<4;++i) {
-      ButtonManagerEvent *bme = nullptr;
-	   xQueueReceive(InternalQueueHandler, &bme, 0);
-      delete bme;
+uint8_t SpaceInvaders::getInvaderMovement() {
+   switch(Round) {
+   case 1:
+      return 2;
+   case 2:
+      return 3;
+   case 3:
+      return 4;
+   case 5: 
+      return 6;
+   default:
+      return 8;
    }
-	InternalState = INIT;
-   LastInvaderMoveTime = 0;
-   Movement = 0; 
-   LastMovementTime = 0;
-   Score = 0;
+}
+
+ErrorType SpaceInvaders::incRound() {
+   ErrorType et;
+   ++Round;
    PlayerShot.setHideen(true);
    uint16_t x = Sprite1XStart;
    for(int i=0;i<NUM_SPRITES_ROW1;++i) {
@@ -273,9 +310,27 @@ ErrorType SpaceInvaders::onInit() {
       Row3.push_back(&SpriteRow3[i]);
       x += Sprite3Distance;
    }
+   for(int i=0;i<NUM_INVADER_SHOTS;++i) {
+      InvaderShot[i].setHideen(true);
+   }
    Player.set(libesp::Point2Dus(70,112));
    MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-   
+   return et;
+}
+
+ErrorType SpaceInvaders::onInit() {
+   for(int i=0;i<4;++i) {
+      ButtonManagerEvent *bme = nullptr;
+	   xQueueReceive(InternalQueueHandler, &bme, 0);
+      delete bme;
+   }
+	InternalState = INIT;
+   LastInvaderMoveTime = 0;
+   Movement = 0; 
+   LastMovementTime = 0;
+   Score = 0;
+   Round = 0;
+   incRound(); 
 	MyApp::get().getButtonMgr().addObserver(InternalQueueHandler);
 	return ErrorType();
 }
@@ -285,7 +340,7 @@ static bool MoveRight = true;
 bool testRowCollision(SPRITE_ROW &r) {
    SPRITE_ROW_IT toRemove = r.end();
    SPRITE_ROW_IT b = r.begin();
-   if(PlayerShot.getPosition().getY()>=(*b)->getPosition().getY() &&
+   if(b!=r.end() && PlayerShot.getPosition().getY()>=(*b)->getPosition().getY() &&
       PlayerShot.getPosition().getY()<=((*b)->getPosition().getY()+(*b)->getImage()->height)) {
 
       for(SPRITE_ROW_IT it=b;it!=r.end();++it) {
@@ -303,7 +358,29 @@ bool testRowCollision(SPRITE_ROW &r) {
    return false;
 }
 
-void SpaceInvaders::update(uint32_t time) {
+void SpaceInvaders::invaderFire(AnimatedSprite *s) {
+   uint8_t totalCanBeFired = Round<4?Round:4;
+   uint8_t shotSoFar = 0;
+   for(int i=0;i<NUM_INVADER_SHOTS;++i) {
+      if(!InvaderShot[i].isHidden()) ++shotSoFar;
+   }
+   if(shotSoFar<totalCanBeFired) {
+      uint32_t dice = esp_random()%100;
+      if(dice<10) {
+         //ESP_LOGI(LOGTAG,"random %u", dice);
+         for(int i=0;i<NUM_INVADER_SHOTS;++i) {
+            if(InvaderShot[i].isHidden()) {
+               InvaderShot[i].setHideen(false);
+               InvaderShot[i].set(s->getBottomMiddle());
+               break;
+            }
+         }
+      }
+   }
+}
+
+int32_t SpaceInvaders::update(uint32_t time) {
+   int32_t retVal = 0;
    if(LastMovementTime==0) LastMovementTime = time;
 
    if((time-LastMovementTime)>50) {
@@ -321,7 +398,6 @@ void SpaceInvaders::update(uint32_t time) {
                PlayerShot.setHideen(true);
                Score+=10;
             }
-
          } else {
             PlayerShot.setHideen(true);
          }
@@ -337,16 +413,27 @@ void SpaceInvaders::update(uint32_t time) {
          Player.moveXBy(4);
          break;
       }
+      for(int i=0;i<NUM_INVADER_SHOTS;++i) {
+         if(!InvaderShot[i].isHidden()) {
+            if(InvaderShot[i].getPosition().getY()>114) {
+               InvaderShot[i].setHideen(true);
+            } else if(Player.didCollide(InvaderShot[i])) {
+               retVal = 1;
+            } else {
+               InvaderShot[i].moveYBy(2);
+            }
+         }
+      }
    }
 
    if(0==LastInvaderMoveTime) LastInvaderMoveTime = time;
    if((time-LastInvaderMoveTime)>=500) {
-      //ESP_LOGI(LOGTAG,"TIME");
       LastInvaderMoveTime = time;
-      uint16_t x = MoveRight?2:-2;
+      uint16_t x = MoveRight?getInvaderMovement():-getInvaderMovement();
       bool didMove = false;
       SPRITE_ROW_IT it = Row1.begin();
       for(;it!=Row1.end();++it) {
+         invaderFire((*it));
          if(!(*it)->moveXBy(x)) {
             if(!didMove) {
                didMove = true;
@@ -359,6 +446,7 @@ void SpaceInvaders::update(uint32_t time) {
       }
       it = Row2.begin();
       for(;it!=Row2.end();++it) {
+         if(Row1.empty()) invaderFire((*it));
          if(!(*it)->moveXBy(x)) {
             if(!didMove) {
                didMove = true;
@@ -369,6 +457,7 @@ void SpaceInvaders::update(uint32_t time) {
       }
       it = Row3.begin();
       for(;it!=Row3.end();++it) {
+         if(Row1.empty() && Row2.empty()) invaderFire((*it));
          if(!(*it)->moveXBy(x)) {
             if(!didMove) {
                didMove = true;
@@ -378,8 +467,8 @@ void SpaceInvaders::update(uint32_t time) {
          }
       }
    }
+   return retVal;
 }
-
 
 void SpaceInvaders::draw(uint32_t time) {
    UNUSED_VAR(time);
@@ -409,6 +498,11 @@ void SpaceInvaders::draw(uint32_t time) {
          (*it)->draw(MyApp::get().getDisplay());
       }
    }
+   {
+      for(int i=0;i<NUM_INVADER_SHOTS;++i) {
+         InvaderShot[i].draw(MyApp::get().getDisplay());
+      }
+   }
    PlayerShot.draw(MyApp::get().getDisplay());
 }
 
@@ -425,8 +519,22 @@ BaseMenu::ReturnStateContext SpaceInvaders::onRun() {
    BaseMenu *nextState = this;
    ButtonManagerEvent *bme = nullptr;
    MyApp::get().getDisplay().fillScreen(RGBColor::BLACK);
-	if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-      switch(bme->getButton()) {
+   if(INIT==InternalState) {
+      char buf[28];
+      sprintf(&buf[0],"Round: %d",Round);
+      MyApp::get().getDisplay().drawString(10,10,&buf[0]);
+      sprintf(&buf[0],"Paired Count %d",MyApp::get().getConfig().getPairCount());
+      MyApp::get().getDisplay().drawString(10,20,&buf[0]);
+      sprintf(&buf[0],"Bonus Percentage: %d",MyApp::get().getConfig().getPairCount()*10);
+      MyApp::get().getDisplay().drawString(10,30,&buf[0]);
+      MyApp::get().getDisplay().drawString(10,60,"Press any button to start");
+	   if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+         InternalState = PLAY;
+         delete bme;
+      }
+   } else if(PLAY==InternalState) {
+	   if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+         switch(bme->getButton()) {
          case PIN_NUM_JUMP_BTN:
             if(bme->wasReleased()) nextState = MyApp::get().getMenuState();
             break;
@@ -443,16 +551,43 @@ BaseMenu::ReturnStateContext SpaceInvaders::onRun() {
             break;
          default:
             break;
-      }
-      delete bme;
-   } 
+         }
+         delete bme;
+      } 
 
-   uint32_t now = FreeRTOS::getTimeSinceStart();
-   
-   update(now);
-   draw(now);
-   Player.draw(MyApp::get().getDisplay());
-   
+      uint32_t now = FreeRTOS::getTimeSinceStart();
+      uint32_t updateRet = update(now);
+      if(updateRet==1) {
+         InternalState = END;
+      } else if(Row1.empty() && Row2.empty() && Row3.empty()) {
+         InternalState=INC_ROUND;    
+      }
+      draw(now);
+      Player.draw(MyApp::get().getDisplay());
+   } else if(INC_ROUND==InternalState) {
+      incRound();
+      InternalState = INIT;
+   } else if(END==InternalState) {
+      char buf[28];
+      sprintf(&buf[0],"Rounds Completed: %d",Round-1);
+      MyApp::get().getDisplay().drawString(10,10,&buf[0]);
+      sprintf(&buf[0],"Score: %u",Score);
+      MyApp::get().getDisplay().drawString(10,20,&buf[0]);
+      uint16_t bcount = MyApp::get().getConfig().getPairCount()*10;
+      sprintf(&buf[0],"Pair Badge Bonus: %d %%",bcount);
+      MyApp::get().getDisplay().drawString(10,30,&buf[0]);
+      uint32_t bonus = uint32_t((float(Score)*float(bcount))/100.0f);
+      sprintf(&buf[0],"Bonus: %d",bonus);
+      MyApp::get().getDisplay().drawString(10,40,&buf[0]);
+      sprintf(&buf[0],"Total Score: %d",bonus+Score);
+      MyApp::get().getDisplay().drawString(10,60,&buf[0]);
+      MyApp::get().getDisplay().drawString(10,80,"Press any button to\n     Send Score");
+
+	   if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
+         nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState(), "Sending Score", 2000);
+         delete bme;
+      }
+   }
 
 	return BaseMenu::ReturnStateContext(nextState);
 }

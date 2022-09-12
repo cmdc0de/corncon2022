@@ -123,6 +123,13 @@ bool AppConfig::isPariedWithColor(const BadgeColor &bc) {
    return false;
 }
 
+uint16_t AppConfig::getPairCount() const {
+   uint16_t c = 0;
+   for(int i=0;i<TOTAL_COLORS;++i) {
+      if(PairedBadgeColors[i]) ++c;
+   }
+   return c;
+}
 
 bool AppConfig::isRegistered() {
    uint16_t r = 0;

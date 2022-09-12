@@ -51,6 +51,7 @@ public:
    BadgeColor getMyBadgeColor() const {return MyBadgeColor;}
    const char *getMyBadgeColorStr() const;
    const char *getBadgeColorStr(const BadgeColor &bc) const;
+   uint16_t getPairCount() const;
 public:
    libesp::ErrorType setName(const char *name);
    libesp::ErrorType setSleepMin(uint16_t s);
