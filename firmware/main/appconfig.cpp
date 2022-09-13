@@ -150,6 +150,9 @@ libesp::ErrorType AppConfig::setName(const char *name) {
    ErrorType et;
    strncpy(&Name[0],name,sizeof(Name));
    et = Storage->setValue(NAME_KEY,name);
+   if(et.ok()) {
+      et = setRegistered(false);
+   }
    return et;
 }
 

@@ -108,7 +108,11 @@ static void http_cleanup(esp_http_client_handle_t client) {
     esp_http_client_cleanup(client);
 }
 
-static const char *REG_URL="http://192.168.5.41:5000/v1/cc/reg";
+#ifdef LOCAL_WEB
+static constexpr const char *REG_URL="http://192.168.5.41:5000/v1/cc/reg";
+#else
+static constexpr const char *REG_URL="http://api.corncon.online:5000/v1/cc/reg";
+#endif
 
 ErrorType SettingMenu::doRegistration() {
    ErrorType et;

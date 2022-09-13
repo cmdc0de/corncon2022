@@ -12,6 +12,7 @@
 #include <system.h>
 #include "esp_http_client.h"
 #include <cJSON.h>
+#include <net/esp32inet.h>
 
 using libesp::ErrorType;
 using libesp::BaseMenu;
@@ -60,7 +61,66 @@ static void http_cleanup(esp_http_client_handle_t client) {
     esp_http_client_cleanup(client);
 }
 
-static const char *HIGHSCORE_URL="http://192.168.5.41:5000/v1/cc/scores";
+#ifdef LOCAL_WEB
+static constexpr const char *HIGHSCORE_URL="http://192.168.5.41:5000/v1/cc/scores";
+static constexpr const char *HIGHSCORE_URL_POST="http://192.168.5.41:5000/v1/cc/score";
+#else
+static constexpr const char *HIGHSCORE_URL="http://api.corncon.online:5000/v1/cc/scores";
+static constexpr const char *HIGHSCORE_URL_POST="http://api.corncon.online:5000/v1/cc/score";
+#endif
+
+ErrorType HighScore::submitScore(uint32_t score) {
+   ErrorType et;
+   char readBuf[2048] = {'\0'};
+   esp_http_client_config_t config;
+   memset(&config,0,sizeof(config));
+   config.url = HIGHSCORE_URL_POST;
+   config.timeout_ms = 15000;
+   config.keep_alive_enable = true;
+   config.skip_cert_common_name_check = true;
+   config.method = HTTP_METHOD_POST;
+   config.buffer_size_tx = 2048;
+   config.buffer_size = 2048;
+   
+   esp_http_client_handle_t client = esp_http_client_init(&config);
+   
+   uint8_t macAddress[6];
+   char macString[14];
+   libesp::ESP32INet::get()->getSTAMacAddress(macAddress,macString);
+   cJSON *root = cJSON_CreateObject();
+   cJSON_AddStringToObject(root, "badge_name", MyApp::get().getConfig().getName());
+   cJSON_AddStringToObject(root, "badge_id", &macString[0]);
+   cJSON_AddNumberToObject(root, "score", score);
+   const char *info = cJSON_Print(root);
+  
+   esp_http_client_set_header(client, "Content-Type", "application/json");
+   et = esp_http_client_open(client, strlen(info));
+   if (et.ok()) {
+      //esp_http_client_set_post_field(client, info, strlen(info));
+      ESP_LOGI(LOGTAG,"Posting: %s",info);
+      int wlen = esp_http_client_write(client, info, strlen(info));
+      if (wlen < 0) {
+         ESP_LOGE(LOGTAG, "Write failed");
+         et = libesp::ErrorType::HTTP_SERVER_ERROR;
+      } else {
+         int32_t content_length = esp_http_client_fetch_headers(client);
+         if(content_length>0) {
+            int32_t status = esp_http_client_get_status_code(client);
+            int32_t contentLen = esp_http_client_get_content_length(client);
+    		   //vTaskDelay(1000 / portTICK_RATE_MS);
+            int32_t bytes = esp_http_client_read(client,&readBuf[0],sizeof(readBuf));
+            ESP_LOGI(LOGTAG,"status=%d contentLen=%d bytes =%d ret=%s",status,contentLen,bytes,&readBuf[0]);
+            if(status!=200) {
+               et = libesp::ErrorType::HTTP_SERVER_ERROR;
+            } 
+         }
+      }
+   }
+   free((void *)info);
+   cJSON_Delete(root);
+   http_cleanup(client);
+   return et;
+}
 
 ErrorType HighScore::fetchScores() {
    ErrorType et;
@@ -96,7 +156,7 @@ ErrorType HighScore::fetchScores() {
                   cJSON *item = cJSON_GetArrayItem(root,i);
                   cJSON *name = cJSON_GetObjectItem(item,"badge_name");
                   cJSON *score = cJSON_GetObjectItem(item,"score");
-                  sprintf(getRow(i),"%2d: %14.13s  %6d", i+1
+                  sprintf(getRow(i),"%2d: %-14.13s  %6d", i+1
                         ,cJSON_GetStringValue(name)
                         ,static_cast<int32_t>(cJSON_GetNumberValue(score)));
                }

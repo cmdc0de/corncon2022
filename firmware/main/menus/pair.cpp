@@ -73,9 +73,15 @@ static void http_cleanup(esp_http_client_handle_t client) {
     esp_http_client_cleanup(client);
 }
 
-static const char *Pair1_URL="http://192.168.5.41:5000/v1/cc/pair";
-static const char *Pair2_URL="http://192.168.5.41:5000/v1/cc/status/%s";
-static const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%u";
+#ifdef LOCAL_WEB
+static constexpr const char *Pair1_URL="http://192.168.5.41:5000/v1/cc/pair";
+static constexpr const char *Pair2_URL="http://192.168.5.41:5000/v1/cc/status/%s";
+static constexpr const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%u";
+#else
+static constexpr const char *Pair1_URL="http://api.corncon.online:5000/v1/cc/pair";
+static constexpr const char *Pair2_URL="http://api.corncon.online:5000/v1/cc/status/%s";
+static constexpr const char *Pair3_URL="http://api.corncon.online:5000/v1/cc/pair2/%s/%u";
+#endif
 
 ErrorType PairMenu::pair1() {
    ErrorType et;
@@ -187,7 +193,6 @@ libesp::ErrorType PairMenu::status(uint32_t timeNow) {
 }
 
 
-//static const char *Pair3_URL="http://192.168.5.41:5000/v1/cc/pair2/%s/%u";
 ErrorType PairMenu::pair2() {
    ErrorType et;
    char readBuf[1024] = {'\0'};

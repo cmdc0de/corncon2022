@@ -13,6 +13,7 @@
 #include "../spaceinvader/sprits.h"
 #include <app/display_message_state.h>
 #include <etl/list.h>
+#include "high_score.h"
 
 using libesp::RGBColor;
 using libesp::FreeRTOS;
@@ -584,7 +585,11 @@ BaseMenu::ReturnStateContext SpaceInvaders::onRun() {
       MyApp::get().getDisplay().drawString(10,80,"Press any button to\n     Send Score");
 
 	   if(xQueueReceive(InternalQueueHandler, &bme, 0)) {
-         nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState(), "Sending Score", 2000);
+         if(MyApp::get().getHighScores()->submitScore(Score+bonus).ok()) {
+            nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState(), "Scores Successfully\n sent to Server", 2000);
+         } else {
+            nextState = MyApp::get().getDisplayMessageState(MyApp::get().getMenuState(), "Scores Failed to send", 2000);
+         }
          delete bme;
       }
    }

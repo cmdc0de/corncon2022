@@ -12,6 +12,7 @@ class HighScore: public AppBaseMenu {
 public:
 	HighScore();
 	virtual ~HighScore();
+   libesp::ErrorType submitScore(uint32_t score);
 protected:
 	virtual libesp::ErrorType onInit();
 	virtual libesp::BaseMenu::ReturnStateContext onRun();
