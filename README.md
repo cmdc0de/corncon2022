@@ -33,6 +33,27 @@ Source code, build and assembly instructions
 * Hold the IC socket in place and flip over the board, bend out legs in the 4 cornerns.
 * Release your hold (socket should stay in place), solder all pins.
 
+### Female headers
+* Place the long and short female headers into the top of the board, holding the headers flip over the board and set down on solder table
+* solder 1 lead on both the long and short header
+* pick up the board and ensre the headers are straight, if not heat up the solder join and move the header straight
+* solder the remaining header pins.
+
+### Male header
+* Place the 4 pin male header into the 4 pin female header.
+* place the lcd pins into the longer female header and have the male header go through the 4 holes on the other side of the lcd
+* solder the 4 pins to the lcd.
+
+
+### Battery holder
+* with the pcb board faing down: take the negative side of the battery holder (black wire) and place in the top left battery hole.
+* Solder in place
+* Take the postivie side of the battery holder (red wire) and place in the bottom right battery hole.
+* Solder in place
+* Turn the battery holder 180 degress, peal off tap covery from double sided tape.
+* Press battery holder in place 
+
+
 
 # Usage:
 
