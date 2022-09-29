@@ -64,9 +64,35 @@ Source code, build and assembly instructions
 <img src="images/battery-holder.png" alt="battery holder" width="200"/>
 <img src="images/battery-placement.jpg" alt="battery placement" width="400"/>
 
-
 # Usage:
+* Note: some of the power switches (just under the led below the LCD screen) does not work, meaning when you turn off the badge it won't turn off, you'll need to just pull the battery.  This is due to an issue with the manufacturing of the switches (but I ran out of time to get new ones).
+* If after assembly a button does not work or the lcd screen is just white, ensure all header pins have solder, if that doesn't work.  reheat the esp32 microcontroller with a soldering iron along each pad.  Sometimes in transit the solder cracks between the esp32 and the pad.
 
+## Main Menu:
+
+<img src="images/IMG_4747.jpg" alt="battery holder" width="200" style="transform:rotate(90deg);"/>
+
+* select any mode by pressing the fire button
+* move back out of any menu by pressing the esc / jump button - except the "Test Badge" menu. where you must use esc/jump and right button to go back to the main menu
+
+* Setting Menu - here you can set your badge name, register your badge (after you connected to wifi), set timezone, set the time until the badge goes to sleep.
+<img src="images/IMG_4748.jpg" alt="battery holder" width="200" style="transform:rotate(90deg);"/>
+
+* Screen Saver - ... its a screen saver :)
+* Test Badge - this ensures all lights and buttons are working
+* 3D Cube - check it out 
+* Invaders - have fun!  for every color badge you pair you you gain 10%
+<img src="images/IMG_4749.jpg" alt="invder" width="200" style="transform:rotate(90deg);"/>
+
+* High Scores - see the high scores for invaders
+* WiFi - allows you to connect to a wifi, it will first scan, then select a wifi and enter a password if need be.
+<img src="images/IMG_4750.jpg" alt="wifi" width="200" style="transform:rotate(90deg);"/>
+<img src="images/IMG_4751.jpg" alt="wifi" width="200" style="transform:rotate(90deg);"/>
+
+* Connect Details - shows WiFi connection details
+* Initiate Pair - If you want to pair with another badge and gain bonus points in Invaders click then, then have the badge your pairing with select pair and enter the pairing code. - Both badges must be connected to WiFi
+* Pair - see above
+* Sleep - put the badge to sleep to conserve battery.
 
 # Build:
-
+* TODO
