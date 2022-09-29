@@ -6,14 +6,14 @@ Source code, build and assembly instructions
 
 ## Componets in your bag:
 * 1 PCB board with all surface mounted components installed
-* 7 LEDS
-* 6 Buttons
-* IC Socket
-* IC - shift register
-* 2 female headers
+* 7 LEDS <img src="images/led.png" alt="leds" width="50"/>
+* 6 Buttons <img src="images/buttons.png" alt="button" width="50"/>
+* IC Socket <img src="images/ic-socket.png" alt="socket" width="50"/>
+* IC - shift register <img src="images/ic-shift-register.png" alt="shift register" width="50"/>
+* 2 female headers <img src="images/10-pin-female.png" alt="header" width="50"/> <img src="images/4-pin-female.png" alt="header" width="50"/>
 * 1 male header
-* 1 LCD screen
-* 1 18650 Battery Holder
+* 1 LCD screen <img src="images/lcd.png" alt="lcd" width="50"/>
+* 1 18650 Battery Holder <img src="images/battery-holder.png" alt="lcd" width="50"/>
 * 1 18650 Battery
 * 1 18650 Battery USB charger
 
