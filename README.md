@@ -50,6 +50,8 @@ Source code, build and assembly instructions
 * place the lcd pins into the longer female header and have the male header go through the 4 holes on the other side of the lcd
 * solder the 4 pins to the lcd.
 
+<img src="images/lcd.png" alt="leds" width="200"/>
+
 
 ### Battery holder
 * with the pcb board faing down: take the negative side of the battery holder (black wire) and place in the top left battery hole.
