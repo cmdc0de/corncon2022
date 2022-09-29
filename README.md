@@ -23,6 +23,8 @@ Source code, build and assembly instructions
 * bend each of the 2 legs of the LED out such that if you turn the badge over they do not fall out.
 * Solder each led of the 7 LEDs.
 
+<img src="images/IMG_4736.jpg" alt="leds" width="200"/>
+
 ### Buttons
 * place buttons in the 6 button wholes
 * solder one leg of each button from the top of the board.
@@ -33,11 +35,15 @@ Source code, build and assembly instructions
 * Hold the IC socket in place and flip over the board, bend out legs in the 4 cornerns.
 * Release your hold (socket should stay in place), solder all pins.
 
+<img src="images/IMG_4735.jpg" alt="leds" width="200"/>
+
 ### Female headers
 * Place the long and short female headers into the top of the board, holding the headers flip over the board and set down on solder table
 * solder 1 lead on both the long and short header
 * pick up the board and ensre the headers are straight, if not heat up the solder join and move the header straight
 * solder the remaining header pins.
+
+<img src="images/header-placement.jpg" alt="leds" width="200"/>
 
 ### Male header
 * Place the 4 pin male header into the 4 pin female header.
