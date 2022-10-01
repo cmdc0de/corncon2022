@@ -95,4 +95,13 @@ Source code, build and assembly instructions
 * Sleep - put the badge to sleep to conserve battery.
 
 # Build:
-* TODO
+* Setup esp-idf as described here using version [v4.4](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/)
+* git clone this respository
+* source <esp-idf installation location>/export.sh (or .bat for windows)
+* cd firmware
+* type make 
+* once built connect badge via USB 
+* ensure the badget is on and hold the "fire" button during flashing.
+* type make flash (you may need to update the make file with the correct USB location defaults to /dev/ttyUSB0)
+
+
