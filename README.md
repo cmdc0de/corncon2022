@@ -75,7 +75,7 @@ Source code, build and assembly instructions
 * select any mode by pressing the fire button
 * move back out of any menu by pressing the esc / jump button - except the "Test Badge" menu. where you must use esc/jump and right button to go back to the main menu
 
-* Setting Menu - here you can set your badge name, register your badge (after you connected to wifi), set timezone, set the time until the badge goes to sleep.
+* Setting Menu - here you can set your badge name, register your badge (after you connected to wifi), set timezone, set the time until the badge goes to sleep. This menu also allows you to update the badge to the latest firmware.
 <img src="images/IMG_4748.jpg" alt="battery holder" width="200" style="transform:rotate(90deg);"/>
 
 * Screen Saver - ... its a screen saver :)
